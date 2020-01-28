@@ -248,7 +248,10 @@ func (p *parser) parseTriples(pos int) (length int, err error) {
 	length += tempLength
 	length += p.consumeWP(pos + length)
 
-	p.triples = append(p.triples, trip)
+	for i := range poList.obj {
+		trip.Obj = poList.obj[i]
+		p.triples = append(p.triples, trip)
+	}
 
 	// consumer dot
 	length += p.consumeWP(pos + length)
@@ -292,6 +295,12 @@ func (p *parser) parsePredicateObjectList(pos int) (list predObjList, length int
 		return
 	}
 	length += p.consumeWP(pos + length)
+	var tempLength int
+	list.obj, tempLength, err = p.parseObjectList(pos + length)
+	if err != nil {
+		return
+	}
+	length += tempLength
 	return
 }
 
@@ -348,7 +357,13 @@ func (p *parser) parseObject(pos int) (obj Object, length int, err error) {
 		err = errors.New("Invalid object " + strconv.Itoa(pos))
 		return
 	}
-
+	// TODO: blank nodes, collections, blankNodePropertyList, literal
+	var iri string
+	iri, length, err = p.parseIRI(pos)
+	if err != nil {
+		return
+	}
+	obj = IRI{name: iri}
 	return
 }
 
