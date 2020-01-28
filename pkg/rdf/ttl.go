@@ -24,6 +24,12 @@ type parser struct {
 	base         string            // base IRI
 	curSubject   string            // current Subject
 	curPredicate string            // current Predicate
+	triples      []Triple          // list of all extracted triples
+}
+
+type predObjList struct {
+	pred Predicate
+	obj  []Object
 }
 
 // DecodeTTL decodes a ttl input to rdf triples
@@ -41,6 +47,7 @@ func DecodeTTL(input io.Reader) (trip []Triple, err error) {
 	}
 	fmt.Println(p.prefix)
 	fmt.Println(p.base)
+	fmt.Println(p.triples)
 	// for i := range p.runes {
 	// 	b := make([]byte, 3)
 	// 	utf8.EncodeRune(b, p.runes[i])
@@ -97,12 +104,10 @@ func (p *parser) parseStatement() (err error) {
 	default:
 		if p.isEqual(p.posStatement, "BASE ") || p.isEqual(p.posStatement, "PREFIX ") {
 			// sparqlBase or sparqlPrefix
-			length, err = p.parseDirective(p.posStatement + 1)
+			length, err = p.parseDirective(p.posStatement)
 		} else {
 			length, err = p.parseTriples(p.posStatement)
 		}
-
-		return
 	}
 	if err != nil {
 		return
@@ -226,8 +231,124 @@ func (p *parser) parseTriples(pos int) (length int, err error) {
 		err = errors.New("Invalid triples " + strconv.Itoa(pos))
 		return
 	}
+	var trip Triple
+	trip.Sub, length, err = p.parseSubject(pos)
+	if err != nil {
+		return
+	}
+	length += p.consumeWP(pos + length)
+
+	var tempLength int
+	var poList predObjList
+	poList, tempLength, err = p.parsePredicateObjectList(pos + length)
+	if err != nil {
+		return
+	}
+	trip.Pred = poList.pred
+	length += tempLength
+	length += p.consumeWP(pos + length)
+
+	p.triples = append(p.triples, trip)
+
+	// consumer dot
+	length += p.consumeWP(pos + length)
+	if p.isEqual(pos+length, ".") {
+		length++
+	} else {
+		err = errors.New("No dot")
+		return
+	}
+	length += p.consumeWP(pos + length)
+
 	// iri, _, _ := p.parseIRI(pos)
 	// fmt.Println(iri)
+	return
+}
+
+// parseSubject parses the subject of a triple
+func (p *parser) parseSubject(pos int) (subj Subject, length int, err error) {
+	if len(p.runes) <= pos {
+		err = errors.New("Invalid subject " + strconv.Itoa(pos))
+		return
+	}
+	// TODO: blank nodes and collections
+	var iri string
+	iri, length, err = p.parseIRI(pos)
+	if err != nil {
+		return
+	}
+	subj = IRI{name: iri}
+	return
+}
+
+// parsePredicateObjectList parses a predicate object list
+func (p *parser) parsePredicateObjectList(pos int) (list predObjList, length int, err error) {
+	if len(p.runes) <= pos {
+		err = errors.New("Invalid predicate object list " + strconv.Itoa(pos))
+		return
+	}
+	list.pred, length, err = p.parsePredicate(pos)
+	if err != nil {
+		return
+	}
+	length += p.consumeWP(pos + length)
+	return
+}
+
+// parsePredicate parses the next predicate
+func (p *parser) parsePredicate(pos int) (pred Predicate, length int, err error) {
+	if len(p.runes) <= pos {
+		err = errors.New("Invalid predicate " + strconv.Itoa(pos))
+		return
+	}
+	var temp string
+	temp, _, err = p.parseUntil(pos+length, ' ')
+	if err != nil {
+		return
+	}
+	if temp == "a" {
+		pred = IRI{name: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"}
+		length = 1
+	} else {
+		var iri string
+		iri, length, err = p.parseIRI(pos)
+		pred = IRI{name: iri}
+	}
+	return
+}
+
+// parseObjectList parses an object list
+func (p *parser) parseObjectList(pos int) (obj []Object, length int, err error) {
+	if len(p.runes) <= pos {
+		err = errors.New("Invalid object list " + strconv.Itoa(pos))
+		return
+	}
+	for {
+		var temp Object
+		var tempLength int
+		temp, tempLength, err = p.parseObject(pos)
+		if err != nil {
+			return
+		}
+		obj = append(obj, temp)
+		length += tempLength
+		length += p.consumeWP(pos + length)
+		if !p.isEqual(pos+length, ",") {
+			break
+		}
+		length++
+		length += p.consumeWP(pos + length)
+	}
+	return
+}
+
+// parseObject parses one object
+func (p *parser) parseObject(pos int) (obj Object, length int, err error) {
+	if len(p.runes) <= pos {
+		err = errors.New("Invalid object " + strconv.Itoa(pos))
+		return
+	}
+
 	return
 }
 
@@ -280,6 +401,62 @@ func (p *parser) parsePrefixedName(pos int) (iri string, length int, err error) 
 	}
 	iri = iri + name
 	length += tempLength
+	return
+}
+
+// parseLiteral parses a literal
+func (p *parser) parseLiteral(pos int) (lit Literal, length int, err error) {
+	if len(p.runes) <= pos {
+		err = errors.New("Literal error " + strconv.Itoa(pos))
+	}
+	if p.runes[pos] == '"' || p.runes[pos] == '\'' {
+		lit, length, err = p.parseRDFLiteral(pos)
+	}
+	return
+}
+
+// parseRDFLiteral parses a rdf literal
+func (p *parser) parseRDFLiteral(pos int) (lit Literal, length int, err error) {
+	if len(p.runes) <= pos+1 {
+		err = errors.New("Literal error " + strconv.Itoa(pos))
+	}
+	if p.runes[pos] == '"' {
+		if p.runes[pos+1] == '"' {
+			lit.value, length, err = p.parseUntil(pos+3, '"')
+			length += 6
+		} else {
+			lit.value, length, err = p.parseUntil(pos+1, '"')
+			length += 2
+		}
+	} else if p.runes[pos] != '\'' {
+		if p.runes[pos+1] == '\'' {
+			lit.value, length, err = p.parseUntil(pos+3, '\'')
+			length += 6
+		} else {
+			lit.value, length, err = p.parseUntil(pos+1, '\'')
+			length += 2
+		}
+	} else {
+		err = errors.New("No rdf literal " + strconv.Itoa(pos))
+	}
+	if err != nil {
+		return
+	}
+	if len(p.runes) <= pos+length {
+		return
+	}
+	if p.runes[pos+length] == '@' {
+
+	} else if p.runes[pos+length] == '^' {
+		length += 2
+		var tempLength int
+		lit.typeIRI, tempLength, err = p.parseIRI(pos + length)
+		if err != nil {
+			return
+		}
+		length += tempLength
+	}
+
 	return
 }
 
