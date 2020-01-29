@@ -13,8 +13,10 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	_, err = rdf.DecodeTTL(file)
+	var triples []rdf.Triple
+	triples, err = rdf.DecodeTTL(file)
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Println(triples)
 }

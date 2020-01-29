@@ -3,7 +3,6 @@ package rdf
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"io"
 	"strconv"
 	"unicode/utf8"
@@ -49,9 +48,6 @@ func DecodeTTL(input io.Reader) (trip []Triple, err error) {
 			break
 		}
 	}
-	fmt.Println(p.prefix)
-	fmt.Println(p.base)
-	fmt.Println(p.triples)
 
 	return
 }

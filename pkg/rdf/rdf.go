@@ -20,6 +20,7 @@ const (
 // Term represents an RDF term. possible types: Blank node, Literal and IRI.
 type Term interface {
 	Type() (typ TermType)
+	String() (str string)
 }
 
 // Subject reprsents the subject of a rdf triple
@@ -48,6 +49,12 @@ func (iri IRI) Type() (typ TermType) {
 	return
 }
 
+// String prints the IRI
+func (iri IRI) String() (str string) {
+	str = iri.name
+	return
+}
+
 // Literal is a possible RDF term
 type Literal struct {
 	str     string
@@ -62,6 +69,12 @@ func (lit Literal) Type() (typ TermType) {
 	return
 }
 
+// String prints the literal string
+func (lit Literal) String() (str string) {
+	str = lit.str
+	return
+}
+
 // BlankNode is a possible RDF term
 type BlankNode struct {
 	name string
@@ -70,5 +83,11 @@ type BlankNode struct {
 // Type denotes the term type
 func (blank BlankNode) Type() (typ TermType) {
 	typ = TermBlankNode
+	return
+}
+
+// String prints the name
+func (blank BlankNode) String() (str string) {
+	str = blank.name
 	return
 }
