@@ -50,9 +50,10 @@ func (iri IRI) Type() (typ TermType) {
 
 // Literal is a possible RDF term
 type Literal struct {
-	value   string
+	str     string
 	typeIRI string
-	lanTag  string
+	langTag string
+	value   interface{}
 }
 
 // Type denotes the term type

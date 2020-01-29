@@ -473,18 +473,18 @@ func (p *parser) parseRDFLiteral(pos int) (lit Literal, length int, err error) {
 	}
 	if p.runes[pos] == '"' {
 		if p.runes[pos+1] == '"' {
-			lit.value, length, err = p.parseUntil(pos+3, '"')
+			lit.str, length, err = p.parseUntil(pos+3, '"')
 			length += 6
 		} else {
-			lit.value, length, err = p.parseUntil(pos+1, '"')
+			lit.str, length, err = p.parseUntil(pos+1, '"')
 			length += 2
 		}
 	} else if p.runes[pos] != '\'' {
 		if p.runes[pos+1] == '\'' {
-			lit.value, length, err = p.parseUntil(pos+3, '\'')
+			lit.str, length, err = p.parseUntil(pos+3, '\'')
 			length += 6
 		} else {
-			lit.value, length, err = p.parseUntil(pos+1, '\'')
+			lit.str, length, err = p.parseUntil(pos+1, '\'')
 			length += 2
 		}
 	} else {
@@ -499,7 +499,7 @@ func (p *parser) parseRDFLiteral(pos int) (lit Literal, length int, err error) {
 	if p.runes[pos+length] == '@' {
 		length++
 		var tempLength int
-		lit.lanTag, tempLength, err = p.parseUntil(pos+length, ' ')
+		lit.langTag, tempLength, err = p.parseUntil(pos+length, ' ')
 		if err != nil {
 			return
 		}
@@ -526,10 +526,10 @@ func (p *parser) parseBooleanLiteral(pos int) (lit Literal, length int, err erro
 		return
 	}
 	if p.isEqual(pos, "true") {
-		lit = Literal{value: "true"}
+		lit = Literal{str: "true", value: true}
 		length = 4
 	} else if p.isEqual(pos, "false") {
-		lit = Literal{value: "false"}
+		lit = Literal{str: "false", value: false}
 		length = 5
 	} else {
 		err = errors.New("No boolean literal " + strconv.Itoa(pos))
@@ -543,6 +543,120 @@ func (p *parser) parseNumericLiteral(pos int) (lit Literal, length int, err erro
 		err = errors.New("Literal error " + strconv.Itoa(pos))
 		return
 	}
+	// get length of literal
+	var value float64
+	tempLength := 0
+	lit.str, length, err = p.parseUntil(pos, ' ')
+
+	if err != nil {
+		return
+	}
+	// + or -
+	if p.runes[pos] == '-' {
+		value = -1
+		tempLength++
+	} else if p.runes[pos] == '+' {
+		value = 1
+		tempLength++
+	} else {
+		value = 1
+	}
+
+	// look for number before dot or exp
+	numLen := 0
+	var num []rune
+	for i := pos + tempLength; i < pos+length; i++ {
+		if p.runes[i] == '.' || p.runes[i] == 'e' || p.runes[i] == 'E' {
+			break
+		}
+		num = append(num, p.runes[i])
+		numLen++
+	}
+	if numLen > 0 {
+		var temp int
+		temp, err = strconv.Atoi(string(num))
+		if err != nil {
+			return
+		}
+		value = value * float64(temp)
+	}
+	tempLength += numLen
+
+	// is integer?
+	if tempLength == length {
+		lit.value = int(value)
+		lit.typeIRI = "http://www.w3.org/2001/XMLSchema#integer"
+		return
+	}
+
+	// look for dot
+	if p.runes[pos+tempLength] == '.' {
+		tempLength++
+		numLen = 0
+		num = nil
+		for i := pos + tempLength; i < pos+length; i++ {
+			if p.runes[i] == '.' || p.runes[i] == 'e' || p.runes[i] == 'E' {
+				break
+			}
+			num = append(num, p.runes[i])
+			numLen++
+		}
+		if numLen > 0 {
+			var temp int
+			temp, err = strconv.Atoi(string(num))
+			if err != nil {
+				return
+			}
+			// divisor
+			div := 1
+			for i := 0; i < numLen; i++ {
+				div = div * 10
+			}
+			value = value + (float64(temp) / float64(div))
+		}
+		tempLength += numLen
+	}
+	if tempLength == length {
+		lit.value = value
+		lit.typeIRI = "http://www.w3.org/2001/XMLSchema#decimal"
+		return
+	}
+
+	// look for exp
+	if p.runes[pos+tempLength] == 'E' || p.runes[pos+tempLength] == 'e' {
+		tempLength++
+		exp := 1.0
+		// + or -?
+		if p.runes[pos+tempLength] == '-' {
+			exp = -exp
+			tempLength++
+		} else if p.runes[pos+tempLength] == '+' {
+			tempLength++
+		}
+		numLen = 0
+		num = nil
+		for i := pos + tempLength; i < pos+length; i++ {
+			num = append(num, p.runes[i])
+			numLen++
+		}
+		if numLen > 0 {
+			var temp int
+			temp, err = strconv.Atoi(string(num))
+			if err != nil {
+				return
+			}
+			// multiplicator
+			mul := 1
+			for i := 0; i < temp; i++ {
+				mul = mul * 10
+			}
+			value = value * float64(mul)
+		}
+		tempLength += numLen
+	}
+
+	lit.value = value
+	lit.typeIRI = "http://www.w3.org/2001/XMLSchema#double"
 	return
 }
 
