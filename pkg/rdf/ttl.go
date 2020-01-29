@@ -579,6 +579,8 @@ func (p *parser) parseNumericLiteral(pos int) (lit Literal, length int, err erro
 			return
 		}
 		value = value * float64(temp)
+	} else {
+		value = 0
 	}
 	tempLength += numLen
 
