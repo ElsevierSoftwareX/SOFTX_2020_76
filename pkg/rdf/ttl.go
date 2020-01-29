@@ -277,6 +277,8 @@ func (p *parser) parseSubject(pos int) (subj Subject, length int, err error) {
 		subj, length, err = p.parseBlankNode(pos)
 	} else if p.runes[pos] == '(' {
 		subj, length, err = p.parseCollection(pos)
+	} else if p.runes[pos] == '[' {
+		subj, length, err = p.parseBlankNodePropertyList(pos)
 	} else {
 		subj, length, err = p.parseIRI(pos)
 	}
@@ -378,8 +380,8 @@ func (p *parser) parseObject(pos int) (obj Object, length int, err error) {
 	} else if p.runes[pos] == '+' || p.runes[pos] == '-' || p.runes[pos] == '0' ||
 		p.runes[pos] == '1' || p.runes[pos] == '2' || p.runes[pos] == '3' || p.runes[pos] == '4' ||
 		p.runes[pos] == '5' || p.runes[pos] == '6' || p.runes[pos] == '7' || p.runes[pos] == '8' ||
-		p.runes[pos] == '9' || p.runes[pos] == '"' ||
-		p.runes[pos] == '\'' {
+		p.runes[pos] == '9' || p.runes[pos] == '"' || p.runes[pos] == '\'' ||
+		p.isEqual(pos, "true") || p.isEqual(pos, "false") || p.runes[pos] == '.' {
 		obj, length, err = p.parseLiteral(pos)
 	} else {
 		obj, length, err = p.parseIRI(pos)
@@ -455,6 +457,10 @@ func (p *parser) parseLiteral(pos int) (lit Literal, length int, err error) {
 	}
 	if p.runes[pos] == '"' || p.runes[pos] == '\'' {
 		lit, length, err = p.parseRDFLiteral(pos)
+	} else if p.isEqual(pos, "true") || p.isEqual(pos, "false") {
+		lit, length, err = p.parseBooleanLiteral(pos)
+	} else {
+		lit, length, err = p.parseNumericLiteral(pos)
 	}
 	return
 }
@@ -510,6 +516,33 @@ func (p *parser) parseRDFLiteral(pos int) (lit Literal, length int, err error) {
 		length += tempLength
 	}
 
+	return
+}
+
+// parseBooleanLiteral parses a boolean literal
+func (p *parser) parseBooleanLiteral(pos int) (lit Literal, length int, err error) {
+	if len(p.runes) <= pos {
+		err = errors.New("Literal error " + strconv.Itoa(pos))
+		return
+	}
+	if p.isEqual(pos, "true") {
+		lit = Literal{value: "true"}
+		length = 4
+	} else if p.isEqual(pos, "false") {
+		lit = Literal{value: "false"}
+		length = 5
+	} else {
+		err = errors.New("No boolean literal " + strconv.Itoa(pos))
+	}
+	return
+}
+
+// parseNumericLiteral parses a numeric literal
+func (p *parser) parseNumericLiteral(pos int) (lit Literal, length int, err error) {
+	if len(p.runes) <= pos {
+		err = errors.New("Literal error " + strconv.Itoa(pos))
+		return
+	}
 	return
 }
 
