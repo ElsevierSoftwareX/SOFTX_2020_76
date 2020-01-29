@@ -12,7 +12,7 @@ type TermType int
 
 // possible RDF term types
 const (
-	TermBlank TermType = iota
+	TermBlankNode TermType = iota
 	TermLiteral
 	TermIRI
 )
@@ -52,10 +52,22 @@ func (iri IRI) Type() (typ TermType) {
 type Literal struct {
 	value   string
 	typeIRI string
+	lanTag  string
 }
 
 // Type denotes the term type
 func (lit Literal) Type() (typ TermType) {
 	typ = TermLiteral
+	return
+}
+
+// BlankNode is a possible RDF term
+type BlankNode struct {
+	name string
+}
+
+// Type denotes the term type
+func (blank BlankNode) Type() (typ TermType) {
+	typ = TermBlankNode
 	return
 }
