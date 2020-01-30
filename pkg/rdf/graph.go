@@ -1,5 +1,10 @@
 package rdf
 
+import (
+	"strconv"
+	"strings"
+)
+
 // Node is a node (subject and/or object) in a rdf graph
 type Node struct {
 	Term        Term
@@ -92,7 +97,7 @@ func (graph *Graph) SubGraph(nodes ...*Node) (g Graph) {
 						Object:  obj,
 					}
 					subj.Edge = append(subj.Edge, pred)
-					obj.Edge = append(obj.Edge, pred)
+					obj.InverseEdge = append(obj.InverseEdge, pred)
 					g.Edges = append(g.Edges, pred)
 				}
 			}
@@ -117,5 +122,77 @@ func (node *Node) addDependentNodes(nodes map[string]*Node) {
 	// 		subj.addDependentNodes(nodes)
 	// 	}
 	// }
+	return
+}
+
+// Merge merges gIn into graph (nodes and edges are copied)
+func (graph *Graph) Merge(gIn *Graph) (err error) {
+	blankID := 0
+	for i := range graph.Nodes {
+		if graph.Nodes[i].Term.Type() == TermBlankNode {
+			temp := strings.Split(i, "b")
+			if len(temp) > 1 {
+				id, err := strconv.Atoi(temp[1])
+				if err != nil {
+					return err
+				}
+				if id > blankID {
+					blankID = id
+				}
+			}
+		}
+	}
+	blankID++
+	for i := range gIn.Nodes {
+		if gIn.Nodes[i].Term.Type() == TermBlankNode {
+			gIn.Nodes[i].Term = BlankNode{name: "b" + strconv.Itoa(blankID)}
+			blankID++
+		}
+	}
+
+	for i := range gIn.Nodes {
+		if _, ok := graph.Nodes[gIn.Nodes[i].Term.String()]; !ok {
+			n := &Node{Term: gIn.Nodes[i].Term}
+			graph.Nodes[gIn.Nodes[i].Term.String()] = n
+		}
+	}
+	for i := range gIn.Edges {
+		if subj, ok := graph.Nodes[gIn.Edges[i].Subject.Term.String()]; ok {
+			predExist := false
+			for j := range subj.Edge {
+				if subj.Edge[j].Pred.String() == gIn.Edges[i].Pred.String() &&
+					subj.Edge[j].Object.Term.String() == gIn.Edges[i].Object.Term.String() {
+					predExist = true
+					break
+				}
+			}
+			if !predExist {
+				if obj, ok := graph.Nodes[gIn.Edges[i].Object.Term.String()]; ok {
+					pred := &Edge{
+						Pred:    gIn.Edges[i].Pred,
+						Subject: subj,
+						Object:  obj,
+					}
+					subj.Edge = append(subj.Edge, pred)
+					obj.InverseEdge = append(obj.InverseEdge, pred)
+					graph.Edges = append(graph.Edges, pred)
+				}
+			}
+		}
+	}
+	return
+}
+
+// Print prints all nodes of the graph
+func (graph *Graph) String() (ret string) {
+	ret = ""
+	for i := range graph.Nodes {
+		ret += graph.Nodes[i].Term.String() + "[ "
+		for j := range graph.Nodes[i].Edge {
+			ret += graph.Nodes[i].Edge[j].Pred.String() + " " +
+				graph.Nodes[i].Edge[j].Object.Term.String() + ", "
+		}
+		ret += "]\n"
+	}
 	return
 }
