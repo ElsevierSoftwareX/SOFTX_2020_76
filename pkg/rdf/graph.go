@@ -68,3 +68,54 @@ func (graph *Graph) ToTriples() (ret []Triple) {
 	}
 	return
 }
+
+// SubGraph returns a graph containing the specified nodes and all transitive objects
+func (graph *Graph) SubGraph(nodes ...*Node) (g Graph) {
+	sub := make(map[string]*Node)
+	for i := range nodes {
+		nodes[i].addDependentNodes(sub)
+	}
+	g.Nodes = make(map[string]*Node)
+	for i := range sub {
+		newNode := &Node{Term: sub[i].Term}
+		g.Nodes[newNode.Term.String()] = newNode
+	}
+	for i := range sub {
+		subj, ok := g.Nodes[i]
+		if ok {
+			for j := range sub[i].Edge {
+				obj, ok := g.Nodes[sub[i].Edge[j].Object.Term.String()]
+				if ok {
+					pred := &Edge{
+						Pred:    sub[i].Edge[j].Pred,
+						Subject: subj,
+						Object:  obj,
+					}
+					subj.Edge = append(subj.Edge, pred)
+					obj.Edge = append(obj.Edge, pred)
+					g.Edges = append(g.Edges, pred)
+				}
+			}
+		}
+	}
+	return
+}
+
+// addDependentNodes
+func (node *Node) addDependentNodes(nodes map[string]*Node) {
+	for i := range node.Edge {
+		if _, ok := nodes[node.Edge[i].Object.Term.String()]; !ok {
+			obj := node.Edge[i].Object
+			nodes[obj.Term.String()] = obj
+			obj.addDependentNodes(nodes)
+		}
+	}
+	// for i := range node.InversePredicates {
+	// 	if _, ok := nodes[node.InversePredicates[i].Subject.Name]; !ok {
+	// 		subj := node.InversePredicates[i].Subject
+	// 		nodes[subj.Name] = subj
+	// 		subj.addDependentNodes(nodes)
+	// 	}
+	// }
+	return
+}
