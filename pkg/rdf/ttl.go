@@ -48,6 +48,7 @@ func DecodeTTL(input io.Reader) (trip []Triple, err error) {
 			break
 		}
 	}
+	trip = p.triples
 
 	return
 }
@@ -216,6 +217,7 @@ func (p *parser) parsePrefix(pos int) (prefix string, length int, err error) {
 		err = errors.New("Prefix error " + strconv.Itoa(pos))
 	}
 	prefix, length, err = p.parseUntil(pos, ':')
+	// fmt.Println("Prefix:" + prefix + "end")
 	length++
 	return
 }
@@ -312,6 +314,9 @@ func (p *parser) parsePredicateObjectList(pos int) (list []predObjList, length i
 		}
 		length++
 		length += p.consumeWP(pos + length)
+		if p.isEqual(pos+length, ".") || p.isEqual(pos+length, "]") {
+			break
+		}
 	}
 	return
 }
@@ -687,7 +692,8 @@ func (p *parser) parseCollection(pos int) (blank BlankNode, length int, err erro
 		err = errors.New("No Collection " + strconv.Itoa(pos))
 		return
 	}
-	length = 1
+	length = p.consumeWP(pos + 1)
+	length++
 	var trip Triple
 	trip.Sub = blank
 	for {
@@ -728,6 +734,7 @@ func (p *parser) parseBlankNodePropertyList(pos int) (blank BlankNode, length in
 		err = errors.New("No BlankNodePropertyList " + strconv.Itoa(pos))
 		return
 	}
+	length = p.consumeWP(pos + 1)
 	length++
 	blank = p.blankNode()
 	var trip Triple

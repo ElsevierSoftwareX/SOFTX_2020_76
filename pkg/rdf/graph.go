@@ -1,6 +1,7 @@
 package rdf
 
 import (
+	"io"
 	"strconv"
 	"strings"
 )
@@ -25,8 +26,8 @@ type Graph struct {
 	Edges []*Edge
 }
 
-// New creates a graph from an rdf triple slice
-func New(triple []Triple) (graph Graph, err error) {
+// NewGraph creates a graph from an rdf triple slice
+func NewGraph(triple []Triple) (graph Graph, err error) {
 	graph.Nodes = make(map[string]*Node)
 	for i := range triple {
 		// object
@@ -180,6 +181,51 @@ func (graph *Graph) Merge(gIn *Graph) (err error) {
 			}
 		}
 	}
+	return
+}
+
+// ToGraphvizDot exports a graph to the graphviz dot format
+func (graph *Graph) ToGraphvizDot(output io.Writer, replace map[string]string, nodeShape map[string]string) (err error) {
+	labelIndex := make(map[string]int)
+	Index := 0
+	dot := "digraph model\n{\n"
+	for i := range graph.Nodes {
+		label := i
+		shape := ""
+		// if graph.Nodes[i].Literal != nil {
+		// 	label = graph.Nodes[i].Literal.String()
+		// }
+		for j := range replace {
+			if strings.HasPrefix(label, j) {
+				label = replace[j] + strings.TrimPrefix(label, j)
+				break
+			}
+		}
+		for j := range nodeShape {
+			if strings.HasPrefix(i, j) {
+				shape = "shape=" + nodeShape[j] + ", "
+			}
+		}
+
+		labelIndex[i] = Index
+		dot += "n" + strconv.Itoa(Index) + " [" + shape + "label=<" + label + ">]\n"
+		Index++
+	}
+	dot += "\n"
+	for i := range graph.Edges {
+		label := graph.Edges[i].Pred.String()
+		for j := range replace {
+			if strings.HasPrefix(label, j) {
+				label = replace[j] + strings.TrimPrefix(label, j)
+				break
+			}
+		}
+		subj := "n" + strconv.Itoa(labelIndex[graph.Edges[i].Subject.Term.String()])
+		obj := "n" + strconv.Itoa(labelIndex[graph.Edges[i].Object.Term.String()])
+		dot += subj + " -> " + obj + " [label=<" + label + ">]\n"
+	}
+	dot += "}\n"
+	output.Write([]byte(dot))
 	return
 }
 
