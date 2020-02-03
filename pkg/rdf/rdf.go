@@ -21,6 +21,7 @@ const (
 type Term interface {
 	Type() (typ TermType)
 	String() (str string)
+	SerializeTTL() (str string)
 }
 
 // Subject reprsents the subject of a rdf triple
