@@ -131,7 +131,7 @@ func (graph *Graph) Merge(gIn *Graph) (err error) {
 	blankID := 0
 	for i := range graph.Nodes {
 		if graph.Nodes[i].Term.Type() == TermBlankNode {
-			temp := strings.Split(i, "b")
+			temp := strings.Split(i, "bn")
 			if len(temp) > 1 {
 				id, err := strconv.Atoi(temp[1])
 				if err != nil {
@@ -146,7 +146,7 @@ func (graph *Graph) Merge(gIn *Graph) (err error) {
 	blankID++
 	for i := range gIn.Nodes {
 		if gIn.Nodes[i].Term.Type() == TermBlankNode {
-			gIn.Nodes[i].Term = BlankNode{name: "b" + strconv.Itoa(blankID)}
+			gIn.Nodes[i].Term = BlankNode{name: "bn" + strconv.Itoa(blankID)}
 			blankID++
 		}
 	}

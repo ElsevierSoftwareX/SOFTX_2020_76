@@ -673,7 +673,7 @@ func (p *parser) parseBlankNode(pos int) (blank BlankNode, length int, err error
 		err = errors.New("No BlankNode " + strconv.Itoa(pos))
 		return
 	}
-	blank.name, length, err = p.parseUntil(pos, ' ')
+	blank.name, length, err = p.parseUntil(pos+2, ' ')
 	if err != nil {
 		return
 	}
@@ -767,7 +767,7 @@ func (p *parser) parseBlankNodePropertyList(pos int) (blank BlankNode, length in
 
 // blankNode creates a new blank node and increments the counter
 func (p *parser) blankNode() (blank BlankNode) {
-	blank = BlankNode{name: "_:bn" + strconv.Itoa(p.bnCounter)}
+	blank = BlankNode{name: "bn" + strconv.Itoa(p.bnCounter)}
 	p.bnCounter++
 	return
 }

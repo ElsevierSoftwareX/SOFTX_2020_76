@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/codegen"
 	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl"
 )
 
@@ -61,4 +62,15 @@ func main() {
 		fmt.Fprintln(file, on.Individual[i].String())
 	}
 	file.Close()
+
+	var mod []owl.GoModel
+	mod, err = owl.MapModel(&on, "git.rwth-aachen.de/acs/research/ensure/clonemap/saref.git")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = codegen.GenerateGoCode(mod, "../../saref")
+	if err != nil {
+		fmt.Println(err)
+	}
 }
