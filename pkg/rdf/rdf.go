@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// IRIs of different literal datatype
 var (
 	// XsdString string
 	XsdString = "http://www.w3.org/2001/XMLSchema#string"
@@ -41,14 +42,14 @@ var (
 	XsdByte = "http://www.w3.org/2001/XMLSchema#byte"
 )
 
-// Triple is one rdf triple
+// Triple is one rdf triple consisting of Subject, Predicate and Object
 type Triple struct {
 	Sub  Subject
 	Pred Predicate
 	Obj  Object
 }
 
-// TermType is the type of a RDF term
+// TermType is the type of a RDF term (IRI, Literal, BlankNode)
 type TermType int
 
 // possible RDF term types
@@ -65,7 +66,7 @@ type Term interface {
 	SerializeTTL() (str string)
 }
 
-// Subject reprsents the subject of a rdf triple
+// Subject represents the subject of a rdf triple
 type Subject interface {
 	Term
 }
@@ -187,6 +188,10 @@ func (lit Literal) ToTime() (t time.Time, err error) {
 	default:
 		err = errors.New("Cannot convert xsd datatype " + lit.typeIRI + " to time")
 	}
+	if err != nil {
+		return
+	}
+	lit.value = t
 	return
 }
 
@@ -225,6 +230,10 @@ func (lit Literal) ToDuration() (d time.Duration, err error) {
 	default:
 		err = errors.New("Cannot convert xsd datatype " + lit.typeIRI + " to duration")
 	}
+	if err != nil {
+		return
+	}
+	lit.value = d
 	return
 }
 

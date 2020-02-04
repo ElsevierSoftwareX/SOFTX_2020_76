@@ -16,17 +16,19 @@ type token struct {
 
 // parser parses a ttl document
 type parser struct {
-	reader       *bufio.Reader     // reader of turtle document
-	runes        []rune            // turtle document as rune slice
-	posStatement int               // starting position of current statement
-	prefix       map[string]string // prefixes
-	base         string            // base IRI
-	curSubject   string            // current Subject
-	curPredicate string            // current Predicate
-	triples      []Triple          // list of all extracted triples
-	bnCounter    int               // blank node counter
+	reader       *bufio.Reader        // reader of turtle document
+	runes        []rune               // turtle document as rune slice
+	posStatement int                  // starting position of current statement
+	prefix       map[string]string    // prefixes
+	base         string               // base IRI
+	curSubject   string               // current Subject
+	curPredicate string               // current Predicate
+	triples      []Triple             // list of all extracted triples
+	bnCounter    int                  // blank node counter
+	blank        map[string]BlankNode // blankNode map
 }
 
+// predObjList is a Predicate Object List
 type predObjList struct {
 	pred Predicate
 	obj  []Object
@@ -34,7 +36,7 @@ type predObjList struct {
 
 // DecodeTTL decodes a ttl input to rdf triples
 func DecodeTTL(input io.Reader) (trip []Triple, err error) {
-	p := &parser{reader: bufio.NewReader(input), prefix: make(map[string]string)}
+	p := &parser{reader: bufio.NewReader(input), prefix: make(map[string]string), blank: make(map[string]BlankNode)}
 	err = p.parseRunes()
 	if err != nil {
 		return
@@ -112,7 +114,7 @@ func (p *parser) parseStatement() (err error) {
 	return
 }
 
-// parseDirective decodes one directive beginning from the specified position
+// parseDirective decodes one directive (prefix, base, sparql prefix or sparql base) beginning from the specified position
 func (p *parser) parseDirective(pos int) (length int, err error) {
 	if len(p.runes) <= pos {
 		err = errors.New("Invalid directive " + strconv.Itoa(pos))
@@ -222,19 +224,22 @@ func (p *parser) parsePrefix(pos int) (prefix string, length int, err error) {
 	return
 }
 
-// parseTriples parses all tripls in a statement
+// parseTriples parses all tripels (subject predicateObjectList) in a statement and adds them to p.triples
 func (p *parser) parseTriples(pos int) (length int, err error) {
 	if len(p.runes) <= pos {
 		err = errors.New("Invalid triples " + strconv.Itoa(pos))
 		return
 	}
 	var trip Triple
+
+	// subject
 	trip.Sub, length, err = p.parseSubject(pos)
 	if err != nil {
 		return
 	}
 	length += p.consumeWS(pos + length)
 
+	// predicateObjectList
 	var tempLength int
 	var poList []predObjList
 	poList, tempLength, err = p.parsePredicateObjectList(pos + length)
@@ -244,6 +249,7 @@ func (p *parser) parseTriples(pos int) (length int, err error) {
 	length += tempLength
 	length += p.consumeWS(pos + length)
 
+	// add triples
 	for i := range poList {
 		trip.Pred = poList[i].pred
 		for j := range poList[i].obj {
@@ -265,7 +271,7 @@ func (p *parser) parseTriples(pos int) (length int, err error) {
 	return
 }
 
-// parseSubject parses the subject of a triple
+// parseSubject parses the subject (iri | BlankNode | collection) of a triple
 func (p *parser) parseSubject(pos int) (subj Subject, length int, err error) {
 	if len(p.runes) <= pos+1 {
 		err = errors.New("Invalid subject " + strconv.Itoa(pos))
@@ -283,7 +289,7 @@ func (p *parser) parseSubject(pos int) (subj Subject, length int, err error) {
 	return
 }
 
-// parsePredicateObjectList parses a predicate object list
+// parsePredicateObjectList parses a predicateObjectList (verb objectList (';' (verb objectList)?)*)
 func (p *parser) parsePredicateObjectList(pos int) (list []predObjList, length int, err error) {
 	if len(p.runes) <= pos {
 		err = errors.New("Invalid predicate object list " + strconv.Itoa(pos))
@@ -294,6 +300,7 @@ func (p *parser) parsePredicateObjectList(pos int) (list []predObjList, length i
 	for {
 		var poListTemp predObjList
 		var tempLength int
+		// verb
 		poListTemp.pred, tempLength, err = p.parsePredicate(pos + length)
 		if err != nil {
 			return
@@ -301,6 +308,7 @@ func (p *parser) parsePredicateObjectList(pos int) (list []predObjList, length i
 		length += tempLength
 		length += p.consumeWS(pos + length)
 
+		//objectList
 		poListTemp.obj, tempLength, err = p.parseObjectList(pos + length)
 		if err != nil {
 			return
@@ -341,7 +349,7 @@ func (p *parser) parsePredicate(pos int) (pred Predicate, length int, err error)
 	return
 }
 
-// parseObjectList parses an object list
+// parseObjectList parses an objectList (object (',' object)*)
 func (p *parser) parseObjectList(pos int) (obj []Object, length int, err error) {
 	if len(p.runes) <= pos {
 		err = errors.New("Invalid object list " + strconv.Itoa(pos))
@@ -366,7 +374,7 @@ func (p *parser) parseObjectList(pos int) (obj []Object, length int, err error) 
 	return
 }
 
-// parseObject parses one object
+// parseObject parses one object (iri | BlankNode | collection | blankNodePropertyList | literal)
 func (p *parser) parseObject(pos int) (obj Object, length int, err error) {
 	if len(p.runes) <= pos {
 		err = errors.New("Invalid object " + strconv.Itoa(pos))
@@ -390,7 +398,7 @@ func (p *parser) parseObject(pos int) (obj Object, length int, err error) {
 	return
 }
 
-// parseIRI parses the next iri
+// parseIRI parses the next iri (IRIRef | prefixedName)
 func (p *parser) parseIRI(pos int) (iri IRI, length int, err error) {
 	if len(p.runes) <= pos {
 		err = errors.New("IRI error " + strconv.Itoa(pos))
@@ -409,7 +417,7 @@ func (p *parser) parseIRI(pos int) (iri IRI, length int, err error) {
 	return
 }
 
-// parseIRI parses IRIRef <iri>
+// parseIRI parses IRIRef (<iri>)
 func (p *parser) parseIRIRef(pos int) (iri string, length int, err error) {
 	if len(p.runes) <= pos {
 		err = errors.New("IRI error " + strconv.Itoa(pos))
@@ -424,7 +432,7 @@ func (p *parser) parseIRIRef(pos int) (iri string, length int, err error) {
 	return
 }
 
-// parsePrefixedName parses prefixed name prefix:name
+// parsePrefixedName parses prefixed name (prefix:name)
 func (p *parser) parsePrefixedName(pos int) (iri string, length int, err error) {
 	if len(p.runes) <= pos {
 		err = errors.New("IRI error " + strconv.Itoa(pos))
@@ -450,7 +458,7 @@ func (p *parser) parsePrefixedName(pos int) (iri string, length int, err error) 
 	return
 }
 
-// parseLiteral parses a literal
+// parseLiteral parses a literal (RDFLiteral | NumericLiteral | BooleanLiteral)
 func (p *parser) parseLiteral(pos int) (lit Literal, length int, err error) {
 	if len(p.runes) <= pos {
 		err = errors.New("Literal error " + strconv.Itoa(pos))
@@ -466,7 +474,7 @@ func (p *parser) parseLiteral(pos int) (lit Literal, length int, err error) {
 	return
 }
 
-// parseRDFLiteral parses a rdf literal
+// parseRDFLiteral parses a rdf literal (String (LANGTAG | '^^' iri))
 func (p *parser) parseRDFLiteral(pos int) (lit Literal, length int, err error) {
 	if len(p.runes) <= pos+1 {
 		err = errors.New("Literal error " + strconv.Itoa(pos))
@@ -497,6 +505,7 @@ func (p *parser) parseRDFLiteral(pos int) (lit Literal, length int, err error) {
 	if len(p.runes) <= pos+length {
 		return
 	}
+	// langtag
 	if p.runes[pos+length] == '@' {
 		length++
 		var tempLength int
@@ -505,7 +514,9 @@ func (p *parser) parseRDFLiteral(pos int) (lit Literal, length int, err error) {
 			return
 		}
 		length += tempLength
-	} else if p.runes[pos+length] == '^' {
+	}
+	// type iri
+	if p.runes[pos+length] == '^' {
 		length += 2
 		var tempLength int
 		var iriTemp IRI
@@ -673,15 +684,22 @@ func (p *parser) parseBlankNode(pos int) (blank BlankNode, length int, err error
 		err = errors.New("No BlankNode " + strconv.Itoa(pos))
 		return
 	}
-	blank.name, length, err = p.parseUntil(pos+2, ' ')
+	var blankName string
+	blankName, length, err = p.parseUntil(pos+2, ' ')
 	if err != nil {
 		return
 	}
 	length += 2
+	var ok bool
+	blank, ok = p.blank[blankName]
+	if !ok {
+		blank = p.blankNode()
+		p.blank[blank.name] = blank
+	}
 	return
 }
 
-// parseCollection parses a collection
+// parseCollection parses a collection ('(' object* ')')
 func (p *parser) parseCollection(pos int) (blank BlankNode, length int, err error) {
 	if len(p.runes) <= pos+1 {
 		err = errors.New("Collection error " + strconv.Itoa(pos))
@@ -724,7 +742,7 @@ func (p *parser) parseCollection(pos int) (blank BlankNode, length int, err erro
 	return
 }
 
-// parseBlankNodePropertyList parses a blankNodePropertyList
+// parseBlankNodePropertyList parses a blankNodePropertyList ('[' predicateObjectList ']')
 func (p *parser) parseBlankNodePropertyList(pos int) (blank BlankNode, length int, err error) {
 	if len(p.runes) <= pos+1 {
 		err = errors.New("BlankNodePropertyList error " + strconv.Itoa(pos))

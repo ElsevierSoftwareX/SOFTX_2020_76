@@ -107,7 +107,7 @@ func (graph *Graph) SubGraph(nodes ...*Node) (g Graph) {
 	return
 }
 
-// addDependentNodes
+// addDependentNodes adds all nodes that are connected to node via an edge
 func (node *Node) addDependentNodes(nodes map[string]*Node) {
 	for i := range node.Edge {
 		if _, ok := nodes[node.Edge[i].Object.Term.String()]; !ok {
