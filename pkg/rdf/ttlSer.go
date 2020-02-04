@@ -39,6 +39,6 @@ func (blank BlankNode) SerializeTTL() (ret string) {
 
 // SerializeTTL serializes a single Triple in ttl format
 func (trip Triple) SerializeTTL() (ret string) {
-	ret = trip.Sub.SerializeTTL() + " " + trip.Pred.SerializeTTL() + " " + trip.Obj.SerializeTTL() + "."
+	ret = trip.Sub.SerializeTTL() + " " + trip.Pred.SerializeTTL() + " " + trip.Obj.SerializeTTL() + " ."
 	return
 }
