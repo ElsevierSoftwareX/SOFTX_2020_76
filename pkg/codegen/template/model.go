@@ -50,12 +50,11 @@ var ModelExists = "// Exist checks for the existance of a resource by the given 
 // ModelNewFromTTL template
 var ModelNewFromTTL = "// NewModelFromTTL creates a new model from a ttl io reader\n" +
 	"func NewModelFromTTL(input io.Reader) (mod *Model, err error) {\n" +
-	"\tdec := rdf.NewTripleDecoder(input, rdf.Turtle)\n" +
-	"\ttriples, err := dec.DecodeAll()\n" +
+	"\ttriples, err := rdf.DecodeTTL(input)\n" +
 	"\tif err != nil {\n" +
 	"\t\treturn\n" +
 	"\t}\n" +
-	"\tg, err := rdf.New(triples)\n" +
+	"\tg, err := rdf.NewGraph(triples)\n" +
 	"\tif err != nil {\n" +
 	"\t\treturn\n" +
 	"\t}\n" +
@@ -68,9 +67,9 @@ var ModelNewFromGraph = "// NewModelFromGraph creates a new model from a owl gra
 	"func NewModelFromGraph(g rdf.Graph) (mod *Model, err error) {\n" +
 	"\tmod = NewModel()\n" +
 	"\tfor i := range g.Nodes {\n" +
-	"\t\tfor j := range g.Nodes[i].Predicates {\n" +
-	"\t\t\tif g.Nodes[i].Predicates[j].Name == \"http://www.w3.org/1999/02/22-rdf-syntax-ns#type\" {\n" +
-	"\t\t\t\tswitch g.Nodes[i].Predicates[j].Object.Name {\n" +
+	"\t\tfor j := range g.Nodes[i].Edge {\n" +
+	"\t\t\tif g.Nodes[i].Edge[j].Pred.String() == \"http://www.w3.org/1999/02/22-rdf-syntax-ns#type\" {\n" +
+	"\t\t\t\tswitch g.Nodes[i].Edge[j].Object.Term.String() {\n" +
 	"###newObjects###" +
 	"\t\t\t\tdefault:\n" +
 	"\t\t\t\t}\n" +
@@ -78,7 +77,7 @@ var ModelNewFromGraph = "// NewModelFromGraph creates a new model from a owl gra
 	"\t\t}\n" +
 	"\t}\n" +
 	"\tfor i := range g.Nodes {\n" +
-	"\t\tif res, ok := mod.mThing[g.Nodes[i].Name]; ok {\n" +
+	"\t\tif res, ok := mod.mThing[g.Nodes[i].Term.String()]; ok {\n" +
 	"\t\t\tres.InitFromNode(g.Nodes[i])\n" +
 	"\t\t}\n" +
 	"\t}\n" +
@@ -87,7 +86,7 @@ var ModelNewFromGraph = "// NewModelFromGraph creates a new model from a owl gra
 
 // NewObject template
 var NewObject = "\t\t\t\tcase \"###classIRI###\":\n" +
-	"\t\t\t\t\tmod.New###capImportName######className###(g.Nodes[i].Name)\n"
+	"\t\t\t\t\tmod.New###capImportName######className###(g.Nodes[i].Term.String())\n"
 
 // ModelToGraph template
 var ModelToGraph = "// ToGraph extracts an owl graph from an existing model\n" +
@@ -105,9 +104,8 @@ var ModelToTTL = "// ToTTL writes a ttl file from an existing model\n" +
 	"func (mod* Model) ToTTL(output io.Writer) (err error) {\n" +
 	"\tg := mod.ToGraph()\n" +
 	"\tnewTriples := g.ToTriples()\n" +
-	"\tout := rdf.NewTripleEncoder(output, rdf.Turtle)\n" +
-	"\terr = out.EncodeAll(newTriples)\n" +
-	"\tout.Close()\n" +
+	"\terr = rdf.EncodeTTL(newTriples, output)\n" +
+	// "\toutput.Close()\n" +
 	"\treturn\n" +
 	"}\n\n"
 
@@ -120,9 +118,9 @@ var ModelDeleteObject = "// DeleteObject deletes an object from the model along 
 	"###deleteFromImports###" +
 	"\tg := mod.ToGraph()\n" +
 	"\tn := g.Nodes[obj.IRI()]\n" +
-	"\tfor i := range n.InversePredicates {\n" +
-	"\t\tif subj, ok := mod.mThing[n.InversePredicates[i].Subject.Name]; ok {\n" +
-	"\t\t\tsubj.RemoveObject(obj, n.InversePredicates[i].Name)\n" +
+	"\tfor i := range n.InverseEdge {\n" +
+	"\t\tif subj, ok := mod.mThing[n.InverseEdge[i].Subject.Term.String()]; ok {\n" +
+	"\t\t\tsubj.RemoveObject(obj, n.InverseEdge[i].Pred.String())\n" +
 	"\t\t}\n" +
 	"\t}\n" +
 	"###deleteFromMaps###" +

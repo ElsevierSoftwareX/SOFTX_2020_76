@@ -286,8 +286,8 @@ var ClassInverseSingleSingle = "// Set###propCapital### is setter of ###comment#
 // ClassInit template
 var ClassInit = "// InitFromNode initializes the resource from a graph node\n" +
 	"func (res *s###className###) InitFromNode(node *rdf.Node) (err error) {\n" +
-	"\tfor i := range node.Predicates {\n" +
-	"\t\tres.propsInit(node.Predicates[i])\n" +
+	"\tfor i := range node.Edge {\n" +
+	"\t\tres.propsInit(node.Edge[i])\n" +
 	"\t}\n" +
 	"\treturn\n" +
 	"}\n\n"
@@ -295,7 +295,7 @@ var ClassInit = "// InitFromNode initializes the resource from a graph node\n" +
 // PropsInit template
 var PropsInit = "// propsInit initializes the property from a graph node\n" +
 	"func (res *s###className###) propsInit(pred *rdf.Edge) (err error) {\n" +
-	"\tswitch pred.Name {\n" +
+	"\tswitch pred.Pred.String() {\n" +
 	"###initSwitchProps###" +
 	"\tdefault:\n" +
 	"###parentPropInit###" +
@@ -308,72 +308,72 @@ var InitSwitchProp = "\tcase \"###propIRI###\":\n" +
 	"###PropInit###"
 
 // PropInitClassNonInverse template
-var PropInitClassNonInverse = "\t\tres.###propLongName###.init(res.model, pred.Object.Name)\n"
+var PropInitClassNonInverse = "\t\tres.###propLongName###.init(res.model, pred.Object.Term.String())\n"
 
 // PropInitLiteralNonInverse template
-var PropInitLiteralNonInverse = "\t\tres.###propLongName###.init(pred.Object.Name)\n"
+var PropInitLiteralNonInverse = "\t\tres.###propLongName###.init(pred.Object.Term.String())\n"
 
 // PropClassBaseThing template
-var PropClassBaseThing = "\t\tif obj, ok := res.model.mThing[pred.Object.Name]; ok {\n" +
+var PropClassBaseThing = "\t\tif obj, ok := res.model.mThing[pred.Object.Term.String()]; ok {\n" +
 	"\t\t\tres.###Multiplicity######propCapital###(obj)\n" +
 	"\t\t}\n"
 
 // PropClassDefault template
-var PropClassDefault = "\t\tif obj, ok := res.model.m###propBaseType###[pred.Object.Name]; ok {\n" +
+var PropClassDefault = "\t\tif obj, ok := res.model.m###propBaseType###[pred.Object.Term.String()]; ok {\n" +
 	"\t\t\tres.###Multiplicity######propCapital###(obj)\n" +
 	"\t\t}\n"
 
 // PropClassImport template
-var PropClassImport = "\t\tif temp := res.model.###capImportName######propBaseType###(pred.Object.Name); len(temp) > 0 {\n" +
+var PropClassImport = "\t\tif temp := res.model.###capImportName######propBaseType###(pred.Object.Term.String()); len(temp) > 0 {\n" +
 	"\t\t\tfor j := range temp {\n" +
-	"\t\t\t\tif temp[j].IRI() == pred.Object.Name {\n" +
+	"\t\t\t\tif temp[j].IRI() == pred.Object.Term.String() {\n" +
 	"\t\t\t\t\tres.###Multiplicity######propCapital###(temp[j])\n" +
 	"\t\t\t\t}\n" +
 	"\t\t\t}\n" +
 	"\t\t}\n"
 
 // PropDate template
-var PropDate = "\t\tif obj, err := time.Parse(\"2006-01-02Z07:00\", pred.Object.Name); err == nil {\n" +
+var PropDate = "\t\tif obj, err := time.Parse(\"2006-01-02Z07:00\", pred.Object.Term.String()); err == nil {\n" +
 	"\t\t\tres.###Multiplicity######propCapital###(obj)\n" +
 	"\t\t}\n"
 
 // PropDateTime template
-var PropDateTime = "\t\tif obj, err := time.Parse(time.RFC3339, pred.Object.Name); err == nil {\n" +
+var PropDateTime = "\t\tif obj, err := time.Parse(time.RFC3339, pred.Object.Term.String()); err == nil {\n" +
 	"\t\t\tres.###Multiplicity######propCapital###(obj)\n" +
 	"\t\t}\n"
 
 // PropDateTimeStamp template
-var PropDateTimeStamp = "\t\tif obj, err := time.Parse(time.RFC3339, pred.Object.Name); err == nil {\n" +
+var PropDateTimeStamp = "\t\tif obj, err := time.Parse(time.RFC3339, pred.Object.Term.String()); err == nil {\n" +
 	"\t\t\tres.###Multiplicity######propCapital###(obj)\n" +
 	"\t\t}\n"
 
 // PropGDay template
-var PropGDay = "\t\tif obj, err := time.Parse(\"---02\", pred.Object.Name); err == nil {\n" +
+var PropGDay = "\t\tif obj, err := time.Parse(\"---02\", pred.Object.Term.String()); err == nil {\n" +
 	"\t\t\tres.###Multiplicity######propCapital###(obj)\n" +
 	"\t\t}\n"
 
 // PropGMonth template
-var PropGMonth = "\t\tif obj, err := time.Parse(\"--01\", pred.Object.Name); err == nil {\n" +
+var PropGMonth = "\t\tif obj, err := time.Parse(\"--01\", pred.Object.Term.String()); err == nil {\n" +
 	"\t\t\tres.###Multiplicity######propCapital###(obj)\n" +
 	"\t\t}\n"
 
 // PropGYear template
-var PropGYear = "\t\tif obj, err := time.Parse(\"2006\", pred.Object.Name); err == nil {\n" +
+var PropGYear = "\t\tif obj, err := time.Parse(\"2006\", pred.Object.Term.String()); err == nil {\n" +
 	"\t\t\tres.###Multiplicity######propCapital###(obj)\n" +
 	"\t\t}\n"
 
 // PropGYearMonth template
-var PropGYearMonth = "\t\tif obj, err := time.Parse(\"2006-01\", pred.Object.Name); err == nil {\n" +
+var PropGYearMonth = "\t\tif obj, err := time.Parse(\"2006-01\", pred.Object.Term.String()); err == nil {\n" +
 	"\t\t\tres.###Multiplicity######propCapital###(obj)\n" +
 	"\t\t}\n"
 
 // PropDuration template
-var PropDuration = "\t\tif obj, err := helper.ParseXsdDuration(pred.Object.Name); err == nil {\n" +
+var PropDuration = "\t\tif obj, err := helper.ParseXsdDuration(pred.Object.Term.String()); err == nil {\n" +
 	"\t\t\tres.###Multiplicity######propCapital###(obj)\n" +
 	"\t\t}\n"
 
 // PropFloat template
-var PropFloat = "\t\tif obj, err := strconv.ParseFloat(pred.Object.Name, 32); err == nil {\n" +
+var PropFloat = "\t\tif obj, err := strconv.ParseFloat(pred.Object.Term.String(), 32); err == nil {\n" +
 	"\t\t\tres.###Multiplicity######propCapital###(float64(obj))\n" +
 	"\t\t}\n"
 

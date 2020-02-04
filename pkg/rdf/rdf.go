@@ -56,6 +56,12 @@ func (iri IRI) String() (str string) {
 	return
 }
 
+// NewIRI returns an IRI object with specified name
+func NewIRI(name string) (iri IRI) {
+	iri = IRI{name: name}
+	return
+}
+
 // Literal is a possible RDF term
 type Literal struct {
 	str     string

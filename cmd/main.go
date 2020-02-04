@@ -66,7 +66,7 @@ func main() {
 	file.Close()
 
 	var mod []owl.GoModel
-	mod, err = owl.MapModel(&on, "git.rwth-aachen.de/acs/research/ensure/clonemap/saref.git")
+	mod, err = owl.MapModel(&on, "git-ce.rwth-aachen.de/acs/private/research/agent/saref.git")
 	if err != nil {
 		fmt.Println(err)
 	}
