@@ -299,14 +299,14 @@ var DelClassMultiple = "\t\tif v, ok := in[i].(###propAllowedType###); ok {\n" +
 
 // PropertyGraphSingle template
 var PropertyGraphSingle = "// toGraph adds all predicates corresponding to the property to an owl graph\n" +
-	"func (res *###propLongName###) toGraph(node *graph.Node, g *graph.Graph) {\n" +
+	"func (res *###propLongName###) toGraph(node *rdf.Node, g *rdf.Graph) {\n" +
 	"###graphProp###" +
 	"\treturn\n" +
 	"}\n\n"
 
 // PropertyGraphMultiple template
 var PropertyGraphMultiple = "// toGraph adds all predicates corresponding to the property to an owl graph\n" +
-	"func (res *###propLongName###) toGraph(node *graph.Node, g *graph.Graph) {\n" +
+	"func (res *###propLongName###) toGraph(node *rdf.Node, g *rdf.Graph) {\n" +
 	"\tfor i := range res.###propName### {\n" +
 	"###graphProp###" +
 	"\t}\n" +

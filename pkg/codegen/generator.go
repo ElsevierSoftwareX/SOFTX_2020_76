@@ -375,8 +375,8 @@ func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 				ifcImport["time"] = ""
 			}
 			if mod.Class[i].Property[j].BaseTyp[0] == "owl.Thing" {
-				strImport["git-ce.rwth-aachen.de/acs/private/research/ensure/owl/owl.git/pkg/owl"] = ""
-				ifcImport["git-ce.rwth-aachen.de/acs/private/research/ensure/owl/owl.git/pkg/owl"] = ""
+				strImport["git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl"] = ""
+				ifcImport["git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl"] = ""
 			}
 			if mod.Class[i].Property[j].BaseTyp[0] == "float64" || mod.Class[i].Property[j].BaseTyp[0] == "int" ||
 				mod.Class[i].Property[j].BaseTyp[0] == "bool" {
@@ -399,8 +399,8 @@ func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 			}
 		}
 	}
-	manImport["git-ce.rwth-aachen.de/acs/private/research/ensure/owl/owl.git/pkg/owl"] = ""
-	serImport["git-ce.rwth-aachen.de/acs/private/research/ensure/owl/owl.git/pkg/graph"] = ""
+	manImport["git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl"] = ""
+	serImport["git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf"] = ""
 	serImport[mod.Module+"/internal/helper"] = ""
 	serImport["fmt"] = ""
 
@@ -833,9 +833,9 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 		imports += "\t" + class.Imports[i] + "\"" + i + "\"\n"
 	}
 	imports += "\t\"errors\"\n"
-	imports += "\t\"git-ce.rwth-aachen.de/acs/private/research/ensure/owl/owl.git/pkg/graph\"\n"
+	imports += "\t\"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf\"\n"
 	if !equalParentProps {
-		imports += "\t\"git-ce.rwth-aachen.de/acs/private/research/ensure/owl/owl.git/pkg/owl\"\n"
+		imports += "\t\"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl\"\n"
 	}
 	imports += "\t\"" + mod.Module + "/internal/helper\"\n"
 	imports += "\t\"strings\"\n"

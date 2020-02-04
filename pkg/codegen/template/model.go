@@ -3,9 +3,9 @@ package template
 // ModelHeader template
 var ModelHeader = "package ###pkgName###\n\n" +
 	"import (\n" +
-	"\t\"git-ce.rwth-aachen.de/acs/private/research/ensure/owl/owl.git/pkg/graph\"\n" +
-	"\t\"git-ce.rwth-aachen.de/acs/private/research/ensure/owl/owl.git/pkg/rdf\"\n" +
-	"\t\"git-ce.rwth-aachen.de/acs/private/research/ensure/owl/owl.git/pkg/owl\"\n" +
+	// "\t\"git-ce.rwth-aachen.de/acs/private/research/ensure/owl/owl.git/pkg/graph\"\n" +
+	"\t\"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf\"\n" +
+	"\t\"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl\"\n" +
 	"\t\"io\"\n" +
 	"###imports###" +
 	")\n\n"
@@ -55,7 +55,7 @@ var ModelNewFromTTL = "// NewModelFromTTL creates a new model from a ttl io read
 	"\tif err != nil {\n" +
 	"\t\treturn\n" +
 	"\t}\n" +
-	"\tg, err := graph.New(triples)\n" +
+	"\tg, err := rdf.New(triples)\n" +
 	"\tif err != nil {\n" +
 	"\t\treturn\n" +
 	"\t}\n" +
@@ -65,7 +65,7 @@ var ModelNewFromTTL = "// NewModelFromTTL creates a new model from a ttl io read
 
 // ModelNewFromGraph template
 var ModelNewFromGraph = "// NewModelFromGraph creates a new model from a owl graph\n" +
-	"func NewModelFromGraph(g graph.Graph) (mod *Model, err error) {\n" +
+	"func NewModelFromGraph(g rdf.Graph) (mod *Model, err error) {\n" +
 	"\tmod = NewModel()\n" +
 	"\tfor i := range g.Nodes {\n" +
 	"\t\tfor j := range g.Nodes[i].Predicates {\n" +
@@ -91,9 +91,9 @@ var NewObject = "\t\t\t\tcase \"###classIRI###\":\n" +
 
 // ModelToGraph template
 var ModelToGraph = "// ToGraph extracts an owl graph from an existing model\n" +
-	"func (mod* Model) ToGraph() (g *graph.Graph) {\n" +
-	"\tg = &graph.Graph{}\n" +
-	"\tg.Nodes = make(map[string]*graph.Node)\n" +
+	"func (mod* Model) ToGraph() (g *rdf.Graph) {\n" +
+	"\tg = &rdf.Graph{}\n" +
+	"\tg.Nodes = make(map[string]*rdf.Node)\n" +
 	"\tfor i := range mod.mThing {\n" +
 	"\t\tmod.mThing[i].ToGraph(g)\n" +
 	"\t}\n" +

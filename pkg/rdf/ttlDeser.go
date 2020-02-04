@@ -124,13 +124,13 @@ func (p *parser) parseDirective(pos int) (length int, err error) {
 		var tempLength int
 		if p.isEqual(pos, "prefix") {
 			length = 6
-			length += p.consumeWP(pos + length)
+			length += p.consumeWS(pos + length)
 			prefix, tempLength, err = p.parsePrefix(pos + length)
 			if err != nil {
 				return
 			}
 			length += tempLength
-			length += p.consumeWP(pos + length)
+			length += p.consumeWS(pos + length)
 			iri, tempLength, err = p.parseIRIRef(pos + length)
 			if err != nil {
 				return
@@ -146,7 +146,7 @@ func (p *parser) parseDirective(pos int) (length int, err error) {
 		var tempLength int
 		if p.isEqual(pos, "base") {
 			length = 4
-			length += p.consumeWP(pos + length)
+			length += p.consumeWS(pos + length)
 			iri, tempLength, err = p.parseIRIRef(pos + length)
 			if err != nil {
 				return
@@ -162,13 +162,13 @@ func (p *parser) parseDirective(pos int) (length int, err error) {
 		var tempLength int
 		if p.isEqual(pos, "PREFIX") {
 			length = 6
-			length += p.consumeWP(pos + length)
+			length += p.consumeWS(pos + length)
 			prefix, tempLength, err = p.parsePrefix(pos + length)
 			if err != nil {
 				return
 			}
 			length += tempLength
-			length += p.consumeWP(pos + length)
+			length += p.consumeWS(pos + length)
 			iri, tempLength, err = p.parseIRIRef(pos + length)
 			if err != nil {
 				return
@@ -184,7 +184,7 @@ func (p *parser) parseDirective(pos int) (length int, err error) {
 		var tempLength int
 		if p.isEqual(pos, "BASE") {
 			length = 4
-			length += p.consumeWP(pos + length)
+			length += p.consumeWS(pos + length)
 			iri, tempLength, err = p.parseIRIRef(pos + length)
 			if err != nil {
 				return
@@ -200,14 +200,14 @@ func (p *parser) parseDirective(pos int) (length int, err error) {
 		return
 	}
 	// consumer dot
-	length += p.consumeWP(pos + length)
+	length += p.consumeWS(pos + length)
 	if p.isEqual(pos+length, ".") {
 		length++
 	} else {
 		err = errors.New("No dot")
 		return
 	}
-	length += p.consumeWP(pos + length)
+	length += p.consumeWS(pos + length)
 	return
 }
 
@@ -233,7 +233,7 @@ func (p *parser) parseTriples(pos int) (length int, err error) {
 	if err != nil {
 		return
 	}
-	length += p.consumeWP(pos + length)
+	length += p.consumeWS(pos + length)
 
 	var tempLength int
 	var poList []predObjList
@@ -242,7 +242,7 @@ func (p *parser) parseTriples(pos int) (length int, err error) {
 		return
 	}
 	length += tempLength
-	length += p.consumeWP(pos + length)
+	length += p.consumeWS(pos + length)
 
 	for i := range poList {
 		trip.Pred = poList[i].pred
@@ -253,14 +253,14 @@ func (p *parser) parseTriples(pos int) (length int, err error) {
 	}
 
 	// consume dot
-	length += p.consumeWP(pos + length)
+	length += p.consumeWS(pos + length)
 	if p.isEqual(pos+length, ".") {
 		length++
 	} else {
 		err = errors.New("No dot")
 		return
 	}
-	length += p.consumeWP(pos + length)
+	length += p.consumeWS(pos + length)
 
 	return
 }
@@ -299,21 +299,21 @@ func (p *parser) parsePredicateObjectList(pos int) (list []predObjList, length i
 			return
 		}
 		length += tempLength
-		length += p.consumeWP(pos + length)
+		length += p.consumeWS(pos + length)
 
 		poListTemp.obj, tempLength, err = p.parseObjectList(pos + length)
 		if err != nil {
 			return
 		}
 		length += tempLength
-		length += p.consumeWP(pos + length)
+		length += p.consumeWS(pos + length)
 		list = append(list, poListTemp)
 
 		if !p.isEqual(pos+length, ";") {
 			break
 		}
 		length++
-		length += p.consumeWP(pos + length)
+		length += p.consumeWS(pos + length)
 		if p.isEqual(pos+length, ".") || p.isEqual(pos+length, "]") {
 			break
 		}
@@ -356,12 +356,12 @@ func (p *parser) parseObjectList(pos int) (obj []Object, length int, err error) 
 		}
 		obj = append(obj, temp)
 		length += tempLength
-		length += p.consumeWP(pos + length)
+		length += p.consumeWS(pos + length)
 		if !p.isEqual(pos+length, ",") {
 			break
 		}
 		length++
-		length += p.consumeWP(pos + length)
+		length += p.consumeWS(pos + length)
 	}
 	return
 }
@@ -692,7 +692,7 @@ func (p *parser) parseCollection(pos int) (blank BlankNode, length int, err erro
 		err = errors.New("No Collection " + strconv.Itoa(pos))
 		return
 	}
-	length = p.consumeWP(pos + 1)
+	length = p.consumeWS(pos + 1)
 	length++
 	var trip Triple
 	trip.Sub = blank
@@ -706,7 +706,7 @@ func (p *parser) parseCollection(pos int) (blank BlankNode, length int, err erro
 		length += tempLength
 		p.triples = append(p.triples, trip)
 
-		tempLength = p.consumeWP(pos + length)
+		tempLength = p.consumeWS(pos + length)
 		length += tempLength
 		if p.isEqual(pos+length, ")") {
 			break
@@ -734,7 +734,7 @@ func (p *parser) parseBlankNodePropertyList(pos int) (blank BlankNode, length in
 		err = errors.New("No BlankNodePropertyList " + strconv.Itoa(pos))
 		return
 	}
-	length = p.consumeWP(pos + 1)
+	length = p.consumeWS(pos + 1)
 	length++
 	blank = p.blankNode()
 	var trip Triple
@@ -747,7 +747,7 @@ func (p *parser) parseBlankNodePropertyList(pos int) (blank BlankNode, length in
 		return
 	}
 	length += tempLength
-	length += p.consumeWP(pos + length)
+	length += p.consumeWS(pos + length)
 
 	for i := range poList {
 		trip.Pred = poList[i].pred
@@ -805,8 +805,8 @@ func toRunes(in []byte) (out []rune, err error) {
 	return
 }
 
-// consumeWP returns number of consecutive white spaces
-func (p *parser) consumeWP(pos int) (num int) {
+// consumeWS returns number of consecutive white spaces
+func (p *parser) consumeWS(pos int) (num int) {
 	num = 0
 	for {
 		if len(p.runes) <= pos {

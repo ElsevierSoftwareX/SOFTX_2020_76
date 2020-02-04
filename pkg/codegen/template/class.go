@@ -285,7 +285,7 @@ var ClassInverseSingleSingle = "// Set###propCapital### is setter of ###comment#
 
 // ClassInit template
 var ClassInit = "// InitFromNode initializes the resource from a graph node\n" +
-	"func (res *s###className###) InitFromNode(node *graph.Node) (err error) {\n" +
+	"func (res *s###className###) InitFromNode(node *rdf.Node) (err error) {\n" +
 	"\tfor i := range node.Predicates {\n" +
 	"\t\tres.propsInit(node.Predicates[i])\n" +
 	"\t}\n" +
@@ -294,7 +294,7 @@ var ClassInit = "// InitFromNode initializes the resource from a graph node\n" +
 
 // PropsInit template
 var PropsInit = "// propsInit initializes the property from a graph node\n" +
-	"func (res *s###className###) propsInit(pred *graph.Edge) (err error) {\n" +
+	"func (res *s###className###) propsInit(pred *rdf.Edge) (err error) {\n" +
 	"\tswitch pred.Name {\n" +
 	"###initSwitchProps###" +
 	"\tdefault:\n" +
@@ -392,7 +392,7 @@ var PropString = "\t\tres.###Multiplicity######propCapital###()\n"
 
 // ClassToGraph template
 var ClassToGraph = "// ToGraph creates a new owl graph node and adds it to the graph\n" +
-	"func (res *s###className###) ToGraph(g *graph.Graph) {\n" +
+	"func (res *s###className###) ToGraph(g *rdf.Graph) {\n" +
 	"\tnode := helper.AddObjectToGraph(g, \"###classIRI###\", res)\n" +
 	"\tres.propsToGraph(node, g)\n" +
 	"\treturn\n" +
@@ -400,7 +400,7 @@ var ClassToGraph = "// ToGraph creates a new owl graph node and adds it to the g
 
 // PropsToGraph template
 var PropsToGraph = "// propsToGraph adds all properties to the graph\n" +
-	"func (res *s###className###) propsToGraph(node *graph.Node, g *graph.Graph) {\n" +
+	"func (res *s###className###) propsToGraph(node *rdf.Node, g *rdf.Graph) {\n" +
 	"###toGraphProps###" +
 	"\treturn\n" +
 	"}\n\n"
@@ -410,7 +410,7 @@ var ToGraphProp = "\tres.###propLongName###.toGraph(node, g)\n"
 
 // ClassToGraphNoProp template
 var ClassToGraphNoProp = "// ToGraph creates a new owl graph node and adds it to the graph\n" +
-	"func (res *s###className###) ToGraph(g *graph.Graph) {\n" +
+	"func (res *s###className###) ToGraph(g *rdf.Graph) {\n" +
 	"\thelper.AddObjectToGraph(g, \"###classIRI###\", res)\n" +
 	"\treturn\n" +
 	"}\n\n"
