@@ -17,28 +17,22 @@ var HelperAddToGraph = "// AddObjectToGraph adds the specified object to the gra
 	"func AddObjectToGraph(g *rdf.Graph, typeIRI string, res owl.Thing) (node *rdf.Node) {\n" +
 	"\t var ok bool\n" +
 	"\tif node, ok = g.Nodes[res.IRI()]; !ok {\n" +
-	"\t\tnode = &rdf.Node{\n" +
-	"\t\t\tName: res.IRI(),\n" +
-	"\t\t\tType: rdf.TermIRI,\n" +
-	"\t\t}\n" +
+	"\t\tnode = &rdf.Node{Term: rdf.NewIRI(res.IRI())}\n" +
 	"\t\tg.Nodes[res.IRI()] = node\n" +
 	"\t}\n" +
-	"\t var typ *rdf.Node\n" +
+	"\tvar typ *rdf.Node\n" +
 	"\tif typ, ok = g.Nodes[typeIRI]; !ok {\n" +
-	"\t\ttyp = &rdf.Node{\n" +
-	"\t\t\tName: typeIRI,\n" +
-	"\t\t\tType: rdf.TermIRI,\n" +
-	"\t\t}\n" +
+	"\t\ttyp = &rdf.Node{Term: rdf.NewIRI(typeIRI)}\n" +
 	"\t\tg.Nodes[typeIRI] = typ\n" +
 	"\t}\n" +
 	"\tpred := &rdf.Edge{\n" +
-	"\t\tName: \"http://www.w3.org/1999/02/22-rdf-syntax-ns#type\",\n" +
+	"\t\tPred: rdf.NewIRI(\"http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"),\n" +
 	"\t\tSubject: node,\n" +
 	"\t\tObject: typ,\n" +
 	"\t}\n" +
 	"\tg.Edges = append(g.Edges, pred)\n" +
-	"\tnode.Predicates = append(node.Predicates, pred)\n" +
-	"\ttyp.InversePredicates = append(typ.InversePredicates, pred)\n" +
+	"\tnode.Edge = append(node.Edge, pred)\n" +
+	"\ttyp.InverseEdge = append(typ.InverseEdge, pred)\n" +
 	"\treturn\n" +
 	"}\n\n"
 
@@ -50,10 +44,7 @@ var HelperAddClassPropertyToGraph = "// AddClassPropertyToGraph adds the specifi
 	"\t}\n" +
 	"\tobjNode, ok := g.Nodes[obj.IRI()]\n" +
 	"\tif !ok {\n" +
-	"\t\tobjNode = &rdf.Node{\n" +
-	"\t\t\tName: obj.IRI(),\n" +
-	"\t\t\tType: rdf.TermIRI,\n" +
-	"\t\t}\n" +
+	"\t\tobjNode = &rdf.Node{Term: rdf.NewIRI(obj.IRI())}\n" +
 	"\t\tg.Nodes[obj.IRI()] = objNode\n" +
 	"\t}\n" +
 	HelperAddPropertyToGraph +
@@ -193,12 +184,12 @@ var HelperAddDurationPropertyToGraph = "// AddDurationPropertyToGraph adds the s
 
 // HelperAddPropertyToGraph template
 var HelperAddPropertyToGraph = "\tpred := &rdf.Edge{\n" +
-	"\t\tName: propIRI,\n" +
+	"\t\tPred: rdf.NewIRI(propIRI),\n" +
 	"\t\tObject: objNode,\n" +
 	"\t\tSubject: subjNode,\n" +
 	"\t}\n" +
-	"\tsubjNode.Predicates = append(subjNode.Predicates, pred)\n" +
-	"\tobjNode.InversePredicates = append(objNode.InversePredicates, pred)\n" +
+	"\tsubjNode.Edge = append(subjNode.Edge, pred)\n" +
+	"\tobjNode.InverseEdge = append(objNode.InverseEdge, pred)\n" +
 	"\tg.Edges = append(g.Edges, pred)\n"
 
 // HelperParseXsdDuration template
