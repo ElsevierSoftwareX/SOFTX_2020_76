@@ -9,26 +9,26 @@ import (
 
 // GoModel holds all classes
 type GoModel struct {
-	Class       map[string]GoClass
-	Individual  []GoIndividual
-	IRI         string
-	Description string
-	Name        string
-	Content     []byte
-	Module      string
-	Import      []*GoModel
+	Class       map[string]GoClass // map className->Class
+	Individual  []GoIndividual     // all individuals
+	IRI         string             // ontology iri
+	Description string             // description extracted from ontology
+	Name        string             // name (part of iri)
+	Content     []byte             // ontology in ttl
+	Module      string             // Go module name
+	Import      []*GoModel         // imported ontologies
 }
 
 // GoClass holds properties of a class
 type GoClass struct {
-	IRI          string
-	Name         string
-	Parent       []string
-	DirectParent []string
-	Imports      map[string]string
-	Property     []GoProperty
-	Comment      string
-	Model        *GoModel
+	IRI          string            // iri of class
+	Name         string            // class name
+	Parent       []string          // parent classes (also transitive)
+	DirectParent []string          // direct parent classes
+	Imports      map[string]string // imported packages for class file creation
+	Property     []GoProperty      // properties of class
+	Comment      string            // comment for doc
+	Model        *GoModel          // pointer to model
 }
 
 // GoProperty holds condiguration of a property
@@ -40,20 +40,20 @@ type GoProperty struct {
 	BaseTyp      [2]string   // type in interface
 	AllowedTyp   [][2]string // allowed types (children of Typ)
 	XSDTyp       string      // XSD type if any
-	Individual   []string
-	Multi        bool
-	Multiplicity string
-	Comment      string
-	Inverse      string
-	Symmetric    bool
+	Individual   []string    // predefined Individuals
+	Multi        bool        // multiple values possible?
+	Multiplicity string      // multiplicity (slice or single value)
+	Comment      string      // comment for doc
+	Inverse      string      // inverse property if any
+	Symmetric    bool        // symmetric?
 }
 
 // GoIndividual individuals
 type GoIndividual struct {
-	IRI        string
-	Name       string
-	Typ        string
-	ImportName string
+	IRI        string // Individual iri
+	Name       string // name of individual
+	Typ        string // type of individual (class)
+	ImportName string // name of package to import
 }
 
 // MapModel extracts the model from an ontology

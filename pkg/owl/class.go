@@ -8,7 +8,7 @@ import (
 	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf"
 )
 
-// extractClasses extracts all classes from a graph anf fills them with basic information
+// extractClasses extracts all classes from a graph and fills them with basic information
 func extractClasses(g *rdf.Graph) (classes map[string]*Class, err error) {
 	classes = make(map[string]*Class)
 	// detrmine all classes
@@ -41,31 +41,31 @@ func extractClasses(g *rdf.Graph) (classes map[string]*Class, err error) {
 }
 
 // postProcessClasses fills parents, children and restrictions of classes
-func (gon *Ontology) postProcessClasses() (err error) {
-	for i := range gon.Class {
-		err = gon.Class[i].extractInheritance(gon)
+func (on *Ontology) postProcessClasses() (err error) {
+	for i := range on.Class {
+		err = on.Class[i].extractInheritance(on)
 		if err != nil {
-			err = errors.New(err.Error() + " class " + gon.Class[i].Name)
+			err = errors.New(err.Error() + " class " + on.Class[i].Name)
 			return
 		}
-		err = gon.Class[i].extractEnumeration(gon)
+		err = on.Class[i].extractEnumeration(on)
 		if err != nil {
-			err = errors.New(err.Error() + " class " + gon.Class[i].Name)
+			err = errors.New(err.Error() + " class " + on.Class[i].Name)
 			return
 		}
-		err = gon.Class[i].extractRestrictions(gon)
+		err = on.Class[i].extractRestrictions(on)
 		if err != nil {
-			err = errors.New(err.Error() + " class " + gon.Class[i].Name)
+			err = errors.New(err.Error() + " class " + on.Class[i].Name)
 			return
 		}
-		err = gon.Class[i].extractUnionOf(gon)
+		err = on.Class[i].extractUnionOf(on)
 		if err != nil {
-			err = errors.New(err.Error() + " class " + gon.Class[i].Name)
+			err = errors.New(err.Error() + " class " + on.Class[i].Name)
 			return
 		}
 	}
-	for i := range gon.Class {
-		gon.Class[i].fillEmptyRestrictionValues()
+	for i := range on.Class {
+		on.Class[i].fillEmptyRestrictionValues()
 	}
 	return
 }
