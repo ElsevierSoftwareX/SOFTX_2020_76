@@ -152,7 +152,7 @@ func generateReadme(ontName string, description string, iri string) (ret string)
 func generateModule(name string) (ret string) {
 	ret = "module " + name + "\n\n"
 	ret += "require (\n"
-	ret += "\tgit-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git v0.0.0-20200204101654-5adc9ebf65e7\n"
+	ret += "\tgit-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git v0.0.0-20200204121702-7077f2753451\n"
 	ret += ")"
 	return
 }
