@@ -26,7 +26,7 @@ func (lit Literal) SerializeTTL() (ret string) {
 		ret += "@" + lit.langTag
 	}
 	if lit.typeIRI != "" {
-		ret += "^^" + lit.typeIRI
+		ret += "^^<" + lit.typeIRI + ">"
 	}
 	return
 }
