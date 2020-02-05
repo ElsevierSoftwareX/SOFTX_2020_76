@@ -9,7 +9,7 @@ import (
 	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl"
 )
 
-// GenerateGoCode generates one go file for each class, one file for individuals
+// GenerateGoCode generates the go package for a model
 func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 	if len(mod) < 1 {
 		return
@@ -138,6 +138,7 @@ func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 	return
 }
 
+// generateReadme generates the readme file of the package
 func generateReadme(ontName string, description string, iri string) (ret string) {
 	ret = "# " + strings.ToTitle(ontName) + "\n\n"
 	ret += "## [Link](" + iri + ")\n\n"
@@ -359,6 +360,7 @@ func generateIndividuals(mod *owl.GoModel) (ret string) {
 	return
 }
 
+// generateProperties
 func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 	strImport := make(map[string]string)
 	manImport := make(map[string]string)
@@ -485,6 +487,7 @@ func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 	return
 }
 
+// generatePropertyName
 func generatePropertyName(prop owl.GoProperty) (ret string) {
 	ret = "prop" + prop.Capital + "Base"
 	if prop.BaseTyp[0] == "time.Time" {
@@ -522,6 +525,7 @@ func generatePropertyName(prop owl.GoProperty) (ret string) {
 	return
 }
 
+// generatePropertyStruct
 func generatePropertyStruct(prop owl.GoProperty) (ret string) {
 	propName := generatePropertyName(prop)
 	if prop.Multi {
@@ -548,6 +552,7 @@ func generatePropertyStruct(prop owl.GoProperty) (ret string) {
 	return
 }
 
+// generatePropertyInterface
 func generatePropertyInterface(prop owl.GoProperty) (ret string) {
 	baseTypeNoImp := prop.BaseTyp[0]
 	temp := strings.Split(prop.BaseTyp[0], ".")
@@ -572,6 +577,7 @@ func generatePropertyInterface(prop owl.GoProperty) (ret string) {
 	return
 }
 
+// generatePropertyManipulator
 func generatePropertyManipulator(prop owl.GoProperty) (ret string) {
 	propName := generatePropertyName(prop)
 	if prop.Multi {
@@ -709,6 +715,7 @@ func generatePropertyManipulator(prop owl.GoProperty) (ret string) {
 	return
 }
 
+// generatePropertySerializer
 func generatePropertySerializer(prop owl.GoProperty) (ret string) {
 	propName := generatePropertyName(prop)
 	graphProp := ""
@@ -1298,6 +1305,7 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 	return
 }
 
+// getImportRecursive
 func getImportRecursive(mod *owl.GoModel) (ret []*owl.GoModel) {
 	for i := range mod.Import {
 		ret = append(ret, mod.Import[i])
@@ -1306,6 +1314,7 @@ func getImportRecursive(mod *owl.GoModel) (ret []*owl.GoModel) {
 	return
 }
 
+// getImportPath
 func getImportPath(mod *owl.GoModel, pkg string) (ret string) {
 	for i := range mod.Import {
 		ret = getImportPath(mod.Import[i], pkg)

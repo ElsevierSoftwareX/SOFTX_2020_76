@@ -236,6 +236,7 @@ func (mod *GoModel) extractClass(class *Class, ont *Ontology) (goClass GoClass, 
 	return
 }
 
+// getRestrictionNameAndIRI returns the name and iri of a restriction
 func getRestrictionNameAndIRI(rest *Restriction, ont *Ontology) (name string, capital string, iri string) {
 	name, _ = trimName(rest.Property.Name, ont)
 	iri = rest.Property.Name
@@ -243,6 +244,7 @@ func getRestrictionNameAndIRI(rest *Restriction, ont *Ontology) (name string, ca
 	return
 }
 
+// getRestrictionMultiplicity returns an indicator if restrictions allows multipe values and a string for slice or array creation
 func getRestrictionMultiplicity(rest *Restriction) (multi bool, multiplicity string) {
 	if rest.ValueConstraint == "http://www.w3.org/2002/07/owl#allValuesFrom" ||
 		rest.ValueConstraint == "http://www.w3.org/2002/07/owl#someValuesFrom" ||
@@ -265,6 +267,7 @@ func getRestrictionMultiplicity(rest *Restriction) (multi bool, multiplicity str
 	return
 }
 
+// getRestrictionAllowedTypes returns the allowed types of a restriction
 func getRestrictionAllowedTypes(rest *Restriction, ont *Ontology) (values [][2]string, importNames []string) {
 	if rest.ValueConstraint == "http://www.w3.org/2002/07/owl#hasValue" {
 		base, err := GetBaseType(rest.Value, ont.Individual, ont.Class)
@@ -350,6 +353,7 @@ func getRestrictionType(rest *Restriction, ont *Ontology) (ret [2]string,
 	return
 }
 
+// getIndividuals returns all individuals of a restrictions
 func getIndividuals(rest *Restriction, ont *Ontology) (inds []string, err error) {
 	if rest.ValueConstraint == "http://www.w3.org/2002/07/owl#hasValue" {
 		for i := range rest.Value {
@@ -418,6 +422,7 @@ func mapLiteralType(literal string) (goType string, err error) {
 	return
 }
 
+// trimName trims long names (iris) to short ones
 func trimName(name string, ont *Ontology) (out string, imp string) {
 	for i := range ont.Imports {
 		if strings.HasPrefix(name, i+"#") {
