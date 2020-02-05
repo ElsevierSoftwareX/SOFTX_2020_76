@@ -21,15 +21,22 @@ func EncodeTTL(triple []Triple, output io.Writer) (err error) {
 			iri := triple[i].Pred.(IRI).name
 			prCounter = checkPrefix(iri, prefix, singleOccurrence, prCounter)
 		}
+		if triple[i].Obj.Type() == TermIRI {
+			iri := triple[i].Obj.(IRI).name
+			prCounter = checkPrefix(iri, prefix, singleOccurrence, prCounter)
+		} else if triple[i].Obj.Type() == TermLiteral && triple[i].Obj.(Literal).typeIRI != "" {
+			iri := triple[i].Obj.(Literal).typeIRI
+			prCounter = checkPrefix(iri, prefix, singleOccurrence, prCounter)
+		}
 	}
 
 	fmt.Println(prefix)
 	for i := range prefix {
-		output.Write([]byte("@prefix " + prefix[i] + ": " + i + " .\n"))
+		output.Write([]byte("@prefix " + prefix[i] + ": <" + i + "> .\n"))
 	}
 
 	for i := range triple {
-		_, err = output.Write([]byte(triple[i].SerializeTTL() + "\n"))
+		_, err = output.Write([]byte(triple[i].SerializeTTL(prefix) + "\n"))
 		if err != nil {
 			return
 		}
@@ -38,32 +45,45 @@ func EncodeTTL(triple []Triple, output io.Writer) (err error) {
 }
 
 // SerializeTTL serializes IRI in ttl format
-func (iri IRI) SerializeTTL() (ret string) {
-	ret = "<" + iri.name + ">"
+func (iri IRI) SerializeTTL(prefix map[string]string) (ret string) {
+	pr := getPrefix(iri.name)
+	if temp, ok := prefix[pr]; ok {
+		rest := strings.Split(iri.name, pr)
+		ret = temp + ":" + rest[len(rest)-1]
+	} else {
+		ret = "<" + iri.name + ">"
+	}
 	return
 }
 
 // SerializeTTL serializes Literal in ttl format
-func (lit Literal) SerializeTTL() (ret string) {
+func (lit Literal) SerializeTTL(prefix map[string]string) (ret string) {
 	ret = "\"" + lit.str + "\""
 	if lit.langTag != "" {
 		ret += "@" + lit.langTag
 	}
 	if lit.typeIRI != "" {
-		ret += "^^<" + lit.typeIRI + ">"
+		ret += "^^"
+		pr := getPrefix(lit.typeIRI)
+		if temp, ok := prefix[pr]; ok {
+			rest := strings.Split(lit.typeIRI, pr)
+			ret += temp + ":" + rest[len(rest)-1]
+		} else {
+			ret += "<" + lit.typeIRI + ">"
+		}
 	}
 	return
 }
 
 // SerializeTTL serializes blank node in ttl format
-func (blank BlankNode) SerializeTTL() (ret string) {
+func (blank BlankNode) SerializeTTL(prefix map[string]string) (ret string) {
 	ret = "_:" + blank.name + ">"
 	return
 }
 
 // SerializeTTL serializes a single Triple in ttl format
-func (trip Triple) SerializeTTL() (ret string) {
-	ret = trip.Sub.SerializeTTL() + " " + trip.Pred.SerializeTTL() + " " + trip.Obj.SerializeTTL() + " ."
+func (trip Triple) SerializeTTL(prefix map[string]string) (ret string) {
+	ret = trip.Sub.SerializeTTL(prefix) + " " + trip.Pred.SerializeTTL(prefix) + " " + trip.Obj.SerializeTTL(prefix) + " ."
 	return
 }
 
@@ -83,9 +103,13 @@ func checkPrefix(iri string, prefix map[string]string, single map[string]interfa
 
 	if _, ok := single[prefTemp]; ok {
 		// prefix has been determined before
-		prefix[prefTemp] = "pr" + strconv.Itoa(retCounter)
+		if st := standardPrefix(prefTemp); st == "" {
+			prefix[prefTemp] = "pr" + strconv.Itoa(retCounter)
+			retCounter++
+		} else {
+			prefix[prefTemp] = st
+		}
 		delete(single, prefTemp)
-		retCounter++
 		fmt.Println(prefTemp)
 	} else {
 		single[prefTemp] = nil
@@ -109,5 +133,24 @@ func getPrefix(iri string) (prefix string) {
 		prefix += temp[i] + sep
 	}
 
+	return
+}
+
+// standardPrefix checks some standard prefixes
+func standardPrefix(name string) (pref string) {
+	switch name {
+	case "http://www.wurvoc.org/vocabularies/om-1.8/":
+		pref = "om"
+	case "http://www.w3.org/2002/07/owl#":
+		pref = "owl"
+	case "http://www.w3.org/1999/02/22-rdf-syntax-ns#":
+		pref = "rdf"
+	case "http://www.w3.org/2001/XMLSchema#":
+		pref = "xsd"
+	case "http://www.w3.org/2000/01/rdf-schema#":
+		pref = "rdfs"
+	default:
+		pref = ""
+	}
 	return
 }

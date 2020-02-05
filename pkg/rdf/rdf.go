@@ -63,7 +63,7 @@ const (
 type Term interface {
 	Type() (typ TermType)
 	String() (str string)
-	SerializeTTL() (str string)
+	SerializeTTL(prefix map[string]string) (str string)
 }
 
 // Subject represents the subject of a rdf triple
