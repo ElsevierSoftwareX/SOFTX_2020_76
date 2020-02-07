@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"regexp"
 	"time"
 
@@ -34,11 +33,6 @@ func ExtractOntology(input io.Reader) (on Ontology, err error) {
 	if err != nil {
 		return
 	}
-
-	var file *os.File
-	file, err = os.Create("graph.dat")
-	fmt.Fprintln(file, on.graph)
-	file.Close()
 
 	on.Class, err = extractClasses(on.graph)
 	if err != nil {
