@@ -6,7 +6,7 @@ var HelperHeader = "package helper\n\n" +
 	"\t\"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf\"\n" +
 	"\t\"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl\"\n" +
 	// "\t\"git-ce.rwth-aachen.de/acs/private/research/ensure/owl/owl.git/pkg/graph\"\n" +
-	"\t\"github.com/piprate/json-gold/ld\"\n" +
+	"\tvalidator \"gopkg.in/asaskevich/govalidator.v9\"\n" +
 	"\t\"fmt\"\n" +
 	"\t\"strconv\"\n" +
 	"\t\"strings\"\n" +
@@ -207,9 +207,9 @@ var HelperParseXsdDuration = "// ParseXsdDuration parses xsdDuration\n" +
 // HelperIsIRI template
 var HelperIsIRI = "// isIRI checks if string is valid iri\n" +
 	"func isIRI(iri string) (ok bool) {\n" +
-	"\tif ld.IsURL(iri) {\n" +
+	"\tok = false\n" +
+	"\tif validator.IsURL(iri) {\n" +
 	"\t\tok = true\n" +
 	"\t}\n" +
-	"\tok = false\n" +
 	"\treturn\n" +
 	"}\n\n"
