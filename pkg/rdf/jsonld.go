@@ -35,6 +35,7 @@ func DecodeJSONLD(input io.Reader) (trip []Triple, err error) {
 
 // EncodeJSONLD encodes triples in json ld format
 func EncodeJSONLD(triple []Triple, output io.Writer) (err error) {
+	triple, _ = addHTTP(triple)
 	prefix := make(map[string]string)
 	tripleString := ""
 	for i := range triple {
@@ -51,5 +52,32 @@ func EncodeJSONLD(triple []Triple, output io.Writer) (err error) {
 	if err != nil {
 		return
 	}
+	return
+}
+
+// addHTTP adds "http://" to avoid errors of json-gold package
+func addHTTP(triple []Triple) (ret []Triple, replaced map[string]string) {
+	replaced = make(map[string]string)
+	for i := range triple {
+		if triple[i].Sub.Type() == TermIRI {
+			if !strings.HasPrefix(triple[i].Sub.String(), "http") {
+				if _, ok := replaced[triple[i].Sub.String()]; !ok {
+					replaced[triple[i].Sub.String()] = "http://" + triple[i].Sub.String()
+				}
+				iri := NewIRI("http://" + triple[i].Sub.String())
+				triple[i].Sub = iri
+			}
+		}
+		if triple[i].Obj.Type() == TermIRI {
+			if !strings.HasPrefix(triple[i].Obj.String(), "http") {
+				if _, ok := replaced[triple[i].Obj.String()]; !ok {
+					replaced[triple[i].Obj.String()] = "http://" + triple[i].Obj.String()
+				}
+				iri := NewIRI("http://" + triple[i].Obj.String())
+				triple[i].Obj = iri
+			}
+		}
+	}
+	ret = triple
 	return
 }
