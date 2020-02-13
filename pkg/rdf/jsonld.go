@@ -35,7 +35,8 @@ func DecodeJSONLD(input io.Reader) (trip []Triple, err error) {
 
 // EncodeJSONLD encodes triples in json ld format
 func EncodeJSONLD(triple []Triple, output io.Writer) (err error) {
-	triple, _ = addHTTP(triple)
+	var replaced map[string]string
+	triple, replaced = addHTTP(triple)
 	prefix := make(map[string]string)
 	tripleString := ""
 	for i := range triple {
@@ -47,11 +48,22 @@ func EncodeJSONLD(triple []Triple, output io.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	jsonEnc := json.NewEncoder(output)
-	err = jsonEnc.Encode(doc)
+	var js []byte
+	js, err = json.Marshal(doc)
 	if err != nil {
 		return
 	}
+	outString := string(js)
+	for i, r := range replaced {
+		outString = strings.Replace(outString, i, r, -1)
+	}
+
+	_, err = output.Write([]byte(outString))
+	// jsonEnc := json.NewEncoder(output)
+	// err = jsonEnc.Encode(doc)
+	// if err != nil {
+	// 	return
+	// }
 	return
 }
 
@@ -61,8 +73,8 @@ func addHTTP(triple []Triple) (ret []Triple, replaced map[string]string) {
 	for i := range triple {
 		if triple[i].Sub.Type() == TermIRI {
 			if !strings.HasPrefix(triple[i].Sub.String(), "http") {
-				if _, ok := replaced[triple[i].Sub.String()]; !ok {
-					replaced[triple[i].Sub.String()] = "http://" + triple[i].Sub.String()
+				if _, ok := replaced["http://"+triple[i].Sub.String()]; !ok {
+					replaced["http://"+triple[i].Sub.String()] = triple[i].Sub.String()
 				}
 				iri := NewIRI("http://" + triple[i].Sub.String())
 				triple[i].Sub = iri
@@ -70,8 +82,8 @@ func addHTTP(triple []Triple) (ret []Triple, replaced map[string]string) {
 		}
 		if triple[i].Obj.Type() == TermIRI {
 			if !strings.HasPrefix(triple[i].Obj.String(), "http") {
-				if _, ok := replaced[triple[i].Obj.String()]; !ok {
-					replaced[triple[i].Obj.String()] = "http://" + triple[i].Obj.String()
+				if _, ok := replaced["http://"+triple[i].Obj.String()]; !ok {
+					replaced["http://"+triple[i].Obj.String()] = triple[i].Obj.String()
 				}
 				iri := NewIRI("http://" + triple[i].Obj.String())
 				triple[i].Obj = iri
