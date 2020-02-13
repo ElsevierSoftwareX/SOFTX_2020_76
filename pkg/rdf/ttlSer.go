@@ -1,7 +1,6 @@
 package rdf
 
 import (
-	"fmt"
 	"io"
 	"strconv"
 	"strings"
@@ -109,7 +108,6 @@ func checkPrefix(iri string, prefix map[string]string, single map[string]interfa
 			prefix[prefTemp] = st
 		}
 		delete(single, prefTemp)
-		fmt.Println(prefTemp)
 	} else {
 		single[prefTemp] = nil
 	}

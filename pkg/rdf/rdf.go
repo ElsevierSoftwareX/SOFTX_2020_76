@@ -253,3 +253,9 @@ func (blank BlankNode) String() (str string) {
 	str = blank.name
 	return
 }
+
+// NewBlankNode returns an blanknode object with specified name
+func NewBlankNode(name string) (blank BlankNode) {
+	blank = BlankNode{name: name}
+	return
+}

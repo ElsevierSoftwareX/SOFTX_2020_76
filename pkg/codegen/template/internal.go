@@ -6,6 +6,7 @@ var HelperHeader = "package helper\n\n" +
 	"\t\"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf\"\n" +
 	"\t\"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl\"\n" +
 	// "\t\"git-ce.rwth-aachen.de/acs/private/research/ensure/owl/owl.git/pkg/graph\"\n" +
+	"\t\"github.com/piprate/json-gold/ld\"\n" +
 	"\t\"fmt\"\n" +
 	"\t\"strconv\"\n" +
 	"\t\"strings\"\n" +
@@ -17,7 +18,11 @@ var HelperAddToGraph = "// AddObjectToGraph adds the specified object to the gra
 	"func AddObjectToGraph(g *rdf.Graph, typeIRI string, res owl.Thing) (node *rdf.Node) {\n" +
 	"\t var ok bool\n" +
 	"\tif node, ok = g.Nodes[res.IRI()]; !ok {\n" +
-	"\t\tnode = &rdf.Node{Term: rdf.NewIRI(res.IRI())}\n" +
+	"\t\tif isIRI(res.IRI()) {\n" +
+	"\t\t\tnode = &rdf.Node{Term: rdf.NewIRI(res.IRI())}\n" +
+	"\t\t} else {\n" +
+	"\t\t\tnode = &rdf.Node{Term: rdf.NewBlankNode(res.IRI())}\n" +
+	"\t\t}\n" +
 	"\t\tg.Nodes[res.IRI()] = node\n" +
 	"\t}\n" +
 	"\tvar typ *rdf.Node\n" +
@@ -44,7 +49,11 @@ var HelperAddClassPropertyToGraph = "// AddClassPropertyToGraph adds the specifi
 	"\t}\n" +
 	"\tobjNode, ok := g.Nodes[obj.IRI()]\n" +
 	"\tif !ok {\n" +
-	"\t\tobjNode = &rdf.Node{Term: rdf.NewIRI(obj.IRI())}\n" +
+	"\t\tif isIRI(obj.IRI()) {\n" +
+	"\t\t\tobjNode = &rdf.Node{Term: rdf.NewIRI(obj.IRI())}\n" +
+	"\t\t} else {\n" +
+	"\t\t\tobjNode = &rdf.Node{Term: rdf.NewBlankNode(obj.IRI())}\n" +
+	"\t\t}\n" +
 	"\t\tg.Nodes[obj.IRI()] = objNode\n" +
 	"\t}\n" +
 	HelperAddPropertyToGraph +
@@ -192,5 +201,15 @@ var HelperParseXsdDuration = "// ParseXsdDuration parses xsdDuration\n" +
 	"\t\t}\n" +
 	"\t}\n" +
 	"\tout, err = time.ParseDuration(str)\n" +
+	"\treturn\n" +
+	"}\n\n"
+
+// HelperIsIRI template
+var HelperIsIRI = "// isIRI checks if string is valid iri\n" +
+	"func isIRI(iri string) (ok bool) {\n" +
+	"\tif ld.IsURL(iri) {\n" +
+	"\t\tok = true\n" +
+	"\t}\n" +
+	"\tok = false\n" +
 	"\treturn\n" +
 	"}\n\n"

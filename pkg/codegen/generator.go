@@ -153,7 +153,7 @@ func generateReadme(ontName string, description string, iri string) (ret string)
 func generateModule(name string) (ret string) {
 	ret = "module " + name + "\n\n"
 	ret += "require (\n"
-	ret += "\tgit-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git v0.0.0-20200204121702-7077f2753451\n"
+	ret += "\tgit-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git v0.0.0-20200213083544-81d76f5caedd\n"
 	ret += ")"
 	return
 }
@@ -186,6 +186,7 @@ func generateHelper() (ret string) {
 		"###timeType###", "GMonth", -1),
 		"###timeLiteral###", template.LiteralGMonth, -1)
 	ret += template.HelperParseXsdDuration
+	ret += template.HelperIsIRI
 	return
 }
 
@@ -229,6 +230,9 @@ func generateModel(mod *owl.GoModel) (ret string) {
 	// ttl to model
 	ret += template.ModelNewFromTTL
 
+	// jsonld to model
+	ret += template.ModelNewFromJSONLD
+
 	// graph to model
 	impRecv := getImportRecursive(mod)
 	newObjects := ""
@@ -259,6 +263,9 @@ func generateModel(mod *owl.GoModel) (ret string) {
 
 	// model to ttl
 	ret += template.ModelToTTL
+
+	// model to jsonld
+	ret += template.ModelToJSONLD
 
 	// delete object
 	deleteFromImports := ""

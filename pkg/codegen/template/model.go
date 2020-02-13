@@ -62,6 +62,21 @@ var ModelNewFromTTL = "// NewModelFromTTL creates a new model from a ttl io read
 	"\treturn\n" +
 	"}\n\n"
 
+// ModelNewFromJSONLD template
+var ModelNewFromJSONLD = "// NewModelFromJSONLD creates a new model from a jsonld io reader\n" +
+	"func NewModelFromJSONLD(input io.Reader) (mod *Model, err error) {\n" +
+	"\ttriples, err := rdf.DecodeJSONLD(input)\n" +
+	"\tif err != nil {\n" +
+	"\t\treturn\n" +
+	"\t}\n" +
+	"\tg, err := rdf.NewGraph(triples)\n" +
+	"\tif err != nil {\n" +
+	"\t\treturn\n" +
+	"\t}\n" +
+	"\tmod, err = NewModelFromGraph(g)\n" +
+	"\treturn\n" +
+	"}\n\n"
+
 // ModelNewFromGraph template
 var ModelNewFromGraph = "// NewModelFromGraph creates a new model from a owl graph\n" +
 	"func NewModelFromGraph(g rdf.Graph) (mod *Model, err error) {\n" +
@@ -105,6 +120,16 @@ var ModelToTTL = "// ToTTL writes a ttl file from an existing model\n" +
 	"\tg := mod.ToGraph()\n" +
 	"\tnewTriples := g.ToTriples()\n" +
 	"\terr = rdf.EncodeTTL(newTriples, output)\n" +
+	// "\toutput.Close()\n" +
+	"\treturn\n" +
+	"}\n\n"
+
+// ModelToJSONLD template
+var ModelToJSONLD = "// ToJSONLD writes a jsonld file from an existing model\n" +
+	"func (mod* Model) ToJSONLD(output io.Writer) (err error) {\n" +
+	"\tg := mod.ToGraph()\n" +
+	"\tnewTriples := g.ToTriples()\n" +
+	"\terr = rdf.EncodeJSONLD(newTriples, output)\n" +
 	// "\toutput.Close()\n" +
 	"\treturn\n" +
 	"}\n\n"
