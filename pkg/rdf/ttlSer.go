@@ -30,7 +30,6 @@ func EncodeTTL(triple []Triple, output io.Writer) (err error) {
 		}
 	}
 
-	fmt.Println(prefix)
 	for i := range prefix {
 		output.Write([]byte("@prefix " + prefix[i] + ": <" + i + "> .\n"))
 	}
@@ -77,7 +76,7 @@ func (lit Literal) SerializeTTL(prefix map[string]string) (ret string) {
 
 // SerializeTTL serializes blank node in ttl format
 func (blank BlankNode) SerializeTTL(prefix map[string]string) (ret string) {
-	ret = "_:" + blank.name + ">"
+	ret = "_:" + blank.name
 	return
 }
 

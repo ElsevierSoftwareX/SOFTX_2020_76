@@ -694,7 +694,7 @@ func (p *parser) parseBlankNode(pos int) (blank BlankNode, length int, err error
 	blank, ok = p.blank[blankName]
 	if !ok {
 		blank = p.blankNode()
-		p.blank[blank.name] = blank
+		p.blank[blankName] = blank
 	}
 	return
 }

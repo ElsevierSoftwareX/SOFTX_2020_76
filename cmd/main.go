@@ -10,24 +10,8 @@ import (
 )
 
 func main() {
-	var err error
-	var file *os.File
-	file, err = os.Open("test.ttl")
-	if err != nil {
-		fmt.Println(err)
-	}
-	var triples []rdf.Triple
-	triples, err = rdf.DecodeTTL(file)
-	if err != nil {
-		fmt.Println(err)
-	}
-	file, err = os.Create("triples.out")
-	err = rdf.EncodeTTL(triples, file)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	file.Close()
+	testjsonld()
+	//
 	// for i := range triples {
 	// 	fmt.Fprintln(file, triples[i])
 	// }
@@ -75,4 +59,36 @@ func main() {
 	// if err != nil {
 	// 	fmt.Println(err)
 	// }
+}
+
+func testjsonld() {
+	var err error
+	var file *os.File
+	file, err = os.Open("time.ttl")
+	if err != nil {
+		fmt.Println(err)
+	}
+	var triples []rdf.Triple
+	triples, err = rdf.DecodeTTL(file)
+	if err != nil {
+		fmt.Println(err)
+	}
+	file, err = os.Create("triples.json")
+	err = rdf.EncodeJSONLD(triples, file)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	file.Close()
+
+	file, err = os.Open("triples.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	triples, err = rdf.DecodeJSONLD(file)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(triples)
+	return
 }
