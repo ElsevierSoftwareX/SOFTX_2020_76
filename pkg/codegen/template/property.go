@@ -143,6 +143,9 @@ var PropInitBool = "\tif obj, err := strconv.ParseBool(in); err == nil {\n" +
 // PropInitString template
 var PropInitString = "\tres.###Multiplicity######propCapital###(in)\n"
 
+// PropInitInterface template
+var PropInitInterface = "\tres.###Multiplicity######propCapital###(in)\n"
+
 // MultiplicityMultiple template
 var MultiplicityMultiple = "Add"
 
@@ -181,6 +184,20 @@ var PropertySetSingleLiteral = "// Set###propCapital### is setter of ###comment#
 	"\tres.###propName### = in\n" +
 	"\treturn\n" +
 	"}\n\n"
+
+// PropertySetSingleLiteralMultiple template
+var PropertySetSingleLiteralMultiple = "// Set###propCapital### is setter of ###comment###\n" +
+	"func (res *###propLongName###) Set###propCapital###(in ###propBaseType###) (err error) {\n" +
+	"###setSingleLiteralMultiple###" +
+	"\terr = errors.New(\"Wrong ###propType### type. Allowed types are ###propAllowedTypes###\")\n" +
+	"\treturn\n" +
+	"}\n\n"
+
+// SetSingleLiteralMultiple template
+var SetSingleLiteralMultiple = "\tif v, ok := in.(###propAllowedType###); ok {\n" +
+	"\t\tres.###propName### = v\n" +
+	"\t\treturn\n" +
+	"\t}\n"
 
 // PropertySetSingleClassSingle template
 var PropertySetSingleClassSingle = "// Set###propCapital### is setter of ###comment###\n" +
@@ -345,6 +362,9 @@ var GraphPropInt = "###indent###\thelper.AddIntPropertyToGraph(g, \"###propIRI##
 // GraphPropBool template
 var GraphPropBool = "###indent###\thelper.AddBoolPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
+// GraphPropInterface template
+var GraphPropInterface = "###indent###\thelper.AddInterfacePropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+
 // GraphPropSDateTime template
 var GraphPropSDateTime = "###indent###\thelper.AddDateTimePropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
@@ -403,6 +423,9 @@ var StringPropInt = "###indent###\tret += fmt.Sprintf(\"%d\", res.###propName###
 
 // StringPropBool template
 var StringPropBool = "###indent###\tret += fmt.Sprintf(\"%v\", res.###propName######array###) + \", \"\n"
+
+// StringPropInterface template
+var StringPropInterface = "###indent###\tret += fmt.Sprintf(\"%v\", res.###propName######array###) + \", \"\n"
 
 // StringPropTime template
 var StringPropTime = "###indent###\tret += res.###propName######array###.String() + \", \"\n"

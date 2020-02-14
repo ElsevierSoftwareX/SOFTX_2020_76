@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 // GoModel holds all classes
@@ -227,8 +228,13 @@ func (mod *GoModel) extractClass(class *Class, ont *Ontology) (goClass GoClass, 
 			}
 		}
 		if b, _ := GetBaseClass([]string{property.BaseTyp[1], property.Typ[1]}, ont.Class); property.BaseTyp[0] != property.Typ[0] && b == nil {
-			// WARNING: This removes properties that are present in specification (relevant for saref4ener:PowerProfile:consists of; saref4ener:AlternativesGroup does not inherit from saref:Profile)
-			continue
+			if property.Typ[0] == "string" || property.Typ[0] == "time.Time" || property.Typ[0] == "time.Duration" ||
+				property.Typ[0] == "int" || property.Typ[0] == "float64" || property.Typ[0] == "bool" {
+
+			} else {
+				// WARNING: This removes properties that are present in specification (relevant for saref4ener:PowerProfile:consists of; saref4ener:AlternativesGroup does not inherit from saref:Profile)
+				continue
+			}
 		}
 		goClass.Property = append(goClass.Property, property)
 	}
@@ -239,6 +245,9 @@ func (mod *GoModel) extractClass(class *Class, ont *Ontology) (goClass GoClass, 
 // getRestrictionNameAndIRI returns the name and iri of a restriction
 func getRestrictionNameAndIRI(rest *Restriction, ont *Ontology) (name string, capital string, iri string) {
 	name, _ = trimName(rest.Property.Name, ont)
+	a := []rune(name)
+	a[0] = unicode.ToLower(a[0])
+	name = string(a)
 	iri = rest.Property.Name
 	capital = strings.Title(name)
 	return
@@ -345,7 +354,7 @@ func getRestrictionType(rest *Restriction, ont *Ontology) (ret [2]string,
 				typeExist = true
 			}
 		} else {
-			ret[0] = "string"
+			ret[0] = "interface{}"
 			typeExist = true
 		}
 	}

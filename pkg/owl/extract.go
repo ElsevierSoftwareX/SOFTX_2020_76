@@ -11,7 +11,7 @@ import (
 )
 
 // ExtractOntology extracts all classes, properties, individuals and imports
-func ExtractOntology(input io.Reader) (on Ontology, err error) {
+func ExtractOntology(link string) (on Ontology, err error) {
 	iri := ""
 	description := ""
 	on.Class = make(map[string]*Class)
@@ -20,11 +20,19 @@ func ExtractOntology(input io.Reader) (on Ontology, err error) {
 	on.Imports = make(map[string][]string)
 	on.Description = make(map[string]string)
 	on.Content = make(map[string][]byte)
-	var g rdf.Graph
-	g, iri, description, _, err = parseOntology(input)
+
+	var resp *http.Response
+	resp, err = requestOntology(link)
 	if err != nil {
 		return
 	}
+	var g rdf.Graph
+	g, iri, description, _, err = parseOntology(resp.Body)
+	if err != nil {
+		return
+	}
+	resp.Body.Close()
+
 	on.graph = &g
 	on.Description[iri] = description
 	on.Imports[iri] = []string{}

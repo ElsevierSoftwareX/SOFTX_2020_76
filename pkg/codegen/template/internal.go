@@ -114,6 +114,18 @@ var HelperAddBoolPropertyToGraph = "// AddBoolPropertyToGraph adds the specified
 	HelperAddPropertyToGraph +
 	"}\n\n"
 
+// HelperAddInterfacePropertyToGraph template
+var HelperAddInterfacePropertyToGraph = "// AddInterfacePropertyToGraph adds the specified property to the graph\n" +
+	"func AddInterfacePropertyToGraph(g *rdf.Graph, propIRI string, subjNode *rdf.Node, obj interface{}) {\n" +
+	"\tlit, _ := rdf.NewLiteral(obj, \"\")\n" +
+	"\tobjNode, ok := g.Nodes[fmt.Sprintf(\"%v\", obj)]\n" +
+	"\tif !ok {\n" +
+	"\t\tobjNode = &rdf.Node{Term: lit}\n" +
+	"\t\tg.Nodes[fmt.Sprintf(\"%v\", obj)] = objNode\n" +
+	"\t}\n" +
+	HelperAddPropertyToGraph +
+	"}\n\n"
+
 // HelperAddTimePropertyToGraph template
 var HelperAddTimePropertyToGraph = "// Add###timeType###PropertyToGraph adds the specified property to the graph\n" +
 	"func Add###timeType###PropertyToGraph(g *rdf.Graph, propIRI string, subjNode *rdf.Node, obj time.Time) {\n" +

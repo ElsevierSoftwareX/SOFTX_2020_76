@@ -164,7 +164,8 @@ func generateHelper() (ret string) {
 	ret = template.HelperHeader + template.HelperAddToGraph
 	ret += template.HelperAddClassPropertyToGraph + template.HelperAddIntPropertyToGraph +
 		template.HelperAddFloatPropertyToGraph + template.HelperAddStringPropertyToGraph +
-		template.HelperAddBoolPropertyToGraph + template.HelperAddDurationPropertyToGraph
+		template.HelperAddBoolPropertyToGraph + template.HelperAddInterfacePropertyToGraph +
+		template.HelperAddDurationPropertyToGraph
 	ret += strings.Replace(strings.Replace(template.HelperAddTimePropertyToGraph,
 		"###timeType###", "DateTime", -1),
 		"###timeLiteral###", template.LiteralDateTime, -1)
@@ -376,7 +377,7 @@ func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 	ifcImport := make(map[string]string)
 	for i := range mod.Class {
 		for j := range mod.Class[i].Property {
-			if mod.Class[i].Property[j].Multi {
+			if mod.Class[i].Property[j].Multi || mod.Class[i].Property[j].AllowedTyp[0][0] != mod.Class[i].Property[j].BaseTyp[0] {
 				manImport["errors"] = ""
 			}
 			if mod.Class[i].Property[j].Typ[0] == "time.Time" || mod.Class[i].Property[j].Typ[0] == "time.Duration" {
@@ -502,6 +503,8 @@ func generatePropertyName(prop owl.GoProperty) (ret string) {
 		ret += "GoTime"
 	} else if prop.BaseTyp[0] == "time.Duration" {
 		ret += "GoDuration"
+	} else if prop.BaseTyp[0] == "interface{}" {
+		ret += "interface"
 	} else {
 		temp := strings.Split(prop.BaseTyp[0], ".")
 		ret += temp[len(temp)-1]
@@ -511,6 +514,8 @@ func generatePropertyName(prop owl.GoProperty) (ret string) {
 		ret += "GoTime"
 	} else if prop.Typ[0] == "time.Duration" {
 		ret += "GoDuration"
+	} else if prop.Typ[0] == "interface{}" {
+		ret += "interface"
 	} else {
 		temp := strings.Split(prop.Typ[0], ".")
 		ret += temp[len(temp)-1]
@@ -525,6 +530,8 @@ func generatePropertyName(prop owl.GoProperty) (ret string) {
 			ret += "GoTime"
 		} else if prop.AllowedTyp[i][0] == "time.Duration" {
 			ret += "GoDuration"
+		} else if prop.AllowedTyp[i][0] == "interface{}" {
+			ret += "interface"
 		} else {
 			temp := strings.Split(prop.AllowedTyp[i][0], ".")
 			ret += temp[len(temp)-1]
@@ -537,7 +544,7 @@ func generatePropertyName(prop owl.GoProperty) (ret string) {
 func generatePropertyStruct(prop owl.GoProperty) (ret string) {
 	propName := generatePropertyName(prop)
 	if prop.Multi {
-		if prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" || prop.Typ[0] == "float64" || prop.Typ[0] == "string" || prop.Typ[0] == "int" {
+		if prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" || prop.Typ[0] == "float64" || prop.Typ[0] == "string" || prop.Typ[0] == "int" || prop.Typ[0] == "interface{}" {
 			ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(template.PropertyStructMultipleLiteral,
 				"###propName###", prop.Name, -1),
 				"###propType###", prop.Typ[0], -1),
@@ -567,6 +574,9 @@ func generatePropertyInterface(prop owl.GoProperty) (ret string) {
 	if len(temp) > 0 {
 		baseTypeNoImp = temp[len(temp)-1]
 	}
+	if baseTypeNoImp == "interface{}" {
+		baseTypeNoImp = "interface"
+	}
 	if prop.Multi {
 		ret = strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(template.PropertyInterfaceMultiple,
 			"###propCapital###", prop.Capital, -1),
@@ -590,7 +600,7 @@ func generatePropertyManipulator(prop owl.GoProperty) (ret string) {
 	propName := generatePropertyName(prop)
 	if prop.Multi {
 		if prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" || prop.Typ[0] == "float64" ||
-			prop.Typ[0] == "string" || prop.Typ[0] == "int" {
+			prop.Typ[0] == "string" || prop.Typ[0] == "int" || prop.Typ[0] == "interface{}" {
 			if prop.Inverse != "" {
 				ret = template.PropertyGetMultipleLiteral
 			} else {
@@ -607,35 +617,54 @@ func generatePropertyManipulator(prop owl.GoProperty) (ret string) {
 				} else {
 					addClassMultiple := ""
 					delClassMultiple := ""
+					allTypes := ""
 					for i := range prop.AllowedTyp {
 						addClassMultiple += strings.Replace(template.AddClassMultiple,
 							"###propAllowedType###", prop.AllowedTyp[i][0], -1)
 						delClassMultiple += strings.Replace(template.DelClassMultiple,
 							"###propAllowedType###", prop.AllowedTyp[i][0], -1)
+						allTypes += prop.AllowedTyp[i][0] + ", "
 					}
 					ret += strings.Replace(template.PropertyAddClassMultiple,
 						"###addClassMultiple###", addClassMultiple, -1)
 					ret += strings.Replace(template.PropertyDelClassMultiple,
 						"###delClassMultiple###", delClassMultiple, -1)
+					ret = strings.Replace(ret, "###propAllowedTypes###", allTypes, -1)
 				}
 			}
 		}
 	} else {
 		ret += template.PropertyGetSingle
 		if prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" || prop.Typ[0] == "float64" ||
-			prop.Typ[0] == "string" || prop.Typ[0] == "int" && prop.Inverse == "" {
-			ret += template.PropertySetSingleLiteral
+			prop.Typ[0] == "string" || prop.Typ[0] == "int" || prop.Typ[0] == "interface{}" && prop.Inverse == "" {
+			if len(prop.AllowedTyp) == 1 && prop.AllowedTyp[0] == prop.BaseTyp {
+				ret += template.PropertySetSingleLiteral
+			} else {
+				setSingleLiteralMultiple := ""
+				allTypes := ""
+				for i := range prop.AllowedTyp {
+					setSingleLiteralMultiple += strings.Replace(template.SetSingleLiteralMultiple,
+						"###propAllowedType###", prop.AllowedTyp[i][0], -1)
+					allTypes += prop.AllowedTyp[i][0] + ", "
+				}
+				ret += strings.Replace(template.PropertySetSingleLiteralMultiple,
+					"###setSingleLiteralMultiple###", setSingleLiteralMultiple, -1)
+				ret = strings.Replace(ret, "###propAllowedTypes###", allTypes, -1)
+			}
 		} else if prop.Inverse == "" {
 			if len(prop.AllowedTyp) == 1 && prop.AllowedTyp[0] == prop.BaseTyp {
 				ret += template.PropertySetSingleClassSingle
 			} else {
 				setSingleClassMultiple := ""
+				allTypes := ""
 				for i := range prop.AllowedTyp {
 					setSingleClassMultiple += strings.Replace(template.SetSingleClassMultiple,
 						"###propAllowedType###", prop.AllowedTyp[i][0], -1)
+					allTypes += prop.AllowedTyp[i][0] + ", "
 				}
 				ret += strings.Replace(template.PropertySetSingleClassMultiple,
 					"###setSingleClassMultiple###", setSingleClassMultiple, -1)
+				ret = strings.Replace(ret, "###propAllowedTypes###", allTypes, -1)
 			}
 		}
 	}
@@ -684,6 +713,8 @@ func generatePropertyManipulator(prop owl.GoProperty) (ret string) {
 			initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###", template.PropInitBool, -1)
 		case "string":
 			initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###", template.PropInitString, -1)
+		case "interface{}":
+			initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###", template.PropInitInterface, -1)
 		default:
 			tempSp := strings.Split(prop.BaseTyp[0], ".")
 			if prop.BaseTyp[0] == "owl.Thing" {
@@ -704,7 +735,7 @@ func generatePropertyManipulator(prop owl.GoProperty) (ret string) {
 			"###propCapital###", prop.Capital, -1)
 
 		if prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" || prop.Typ[0] == "float64" ||
-			prop.Typ[0] == "string" || prop.Typ[0] == "int" && prop.Inverse == "" || prop.Typ[0] == "bool" {
+			prop.Typ[0] == "string" || prop.Typ[0] == "int" && prop.Inverse == "" || prop.Typ[0] == "bool" || prop.Typ[0] == "interface{}" {
 			return
 		}
 		if prop.Multi {
@@ -741,6 +772,9 @@ func generatePropertySerializer(prop owl.GoProperty) (ret string) {
 	case "bool":
 		graphProp = template.GraphPropBool
 		stringProp = template.StringPropBool
+	case "interface{}":
+		graphProp = template.GraphPropInterface
+		stringProp = template.StringPropInterface
 	case "time.Time", "time.Duration":
 		stringProp = template.StringPropTime
 		switch prop.XSDTyp {
@@ -884,6 +918,9 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 			if len(temp) > 0 {
 				baseTypeNoImp = temp[len(temp)-1]
 			}
+			if baseTypeNoImp == "interface{}" {
+				baseTypeNoImp = "interface"
+			}
 			interfaceMethods += strings.Replace(strings.Replace(strings.Replace(template.InterfaceInterface,
 				"###propName###", prop.Name, -1),
 				"###propBaseTypeNoImp###", baseTypeNoImp, -1),
@@ -958,7 +995,8 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 		if isParentProp {
 			continue
 		}
-		if prop.Multi && !(prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" || prop.Typ[0] == "float64" || prop.Typ[0] == "string" || prop.Typ[0] == "int") {
+		if prop.Multi && !(prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" || prop.Typ[0] == "float64" ||
+			prop.Typ[0] == "string" || prop.Typ[0] == "int" || prop.Typ[0] == "interface{}") {
 			newMakeMaps += strings.Replace(strings.Replace(template.NewMakeMap,
 				"###propName###", prop.Name, -1),
 				"###propType###", prop.Typ[0], -1)
@@ -1043,7 +1081,8 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 			continue
 		}
 		if prop.BaseTyp[0] == "string" || prop.BaseTyp[0] == "float64" || prop.BaseTyp[0] == "int" ||
-			prop.BaseTyp[0] == "time.Time" || prop.BaseTyp[0] == "time.Duration" || prop.BaseTyp[0] == "bool" {
+			prop.BaseTyp[0] == "time.Time" || prop.BaseTyp[0] == "time.Duration" || prop.BaseTyp[0] == "bool" ||
+			prop.BaseTyp[0] == "interface{}" {
 			continue
 		}
 		if prop.Inverse == "" {
@@ -1185,7 +1224,8 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 		if prop.Inverse == "" {
 			propName := generatePropertyName(prop)
 			if prop.Typ[0] == "time.Time" || prop.Typ[0] == "int" || prop.Typ[0] == "string" ||
-				prop.Typ[0] == "float64" || prop.Typ[0] == "bool" || prop.Typ[0] == "time.Duration" {
+				prop.Typ[0] == "float64" || prop.Typ[0] == "bool" || prop.Typ[0] == "time.Duration" ||
+				prop.Typ[0] == "interface{}" {
 				initSwitchProps += strings.Replace(strings.Replace(temp,
 					"###PropInit###", template.PropInitLiteralNonInverse, -1),
 					"###propLongName###", propName, -1)
