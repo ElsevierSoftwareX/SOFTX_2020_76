@@ -4,6 +4,8 @@ OWL2Go is a code generator that takes a OWL ontology and generates a Go package 
 
 ## How to use OWL2Go
 
+For an example on how to generate a package for the SAREF ontology, please refer to ```cmd/main.go```.
+
 ## How to use the generated package
 
 ## Copyright
