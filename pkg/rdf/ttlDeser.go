@@ -80,7 +80,8 @@ type predObjList struct {
 
 // DecodeTTL decodes a ttl input to rdf triples
 func DecodeTTL(input io.Reader) (trip []Triple, err error) {
-	p := &parser{reader: bufio.NewReader(input), prefix: make(map[string]string), blank: make(map[string]BlankNode)}
+	p := &parser{reader: bufio.NewReader(input), prefix: make(map[string]string),
+		blank: make(map[string]BlankNode)}
 	err = p.parseRunes()
 	if err != nil {
 		return
@@ -158,7 +159,8 @@ func (p *parser) parseStatement() (err error) {
 	return
 }
 
-// parseDirective decodes one directive (prefix, base, sparql prefix or sparql base) beginning from the specified position
+// parseDirective decodes one directive (prefix, base, sparql prefix or sparql base) beginning from
+// the specified position
 func (p *parser) parseDirective(pos int) (length int, err error) {
 	if len(p.runes) <= pos {
 		err = errors.New("Invalid directive " + strconv.Itoa(pos))
@@ -268,7 +270,8 @@ func (p *parser) parsePrefix(pos int) (prefix string, length int, err error) {
 	return
 }
 
-// parseTriples parses all tripels (subject predicateObjectList) in a statement and adds them to p.triples
+// parseTriples parses all tripels (subject predicateObjectList) in a statement and adds them to
+// p.triples
 func (p *parser) parseTriples(pos int) (length int, err error) {
 	if len(p.runes) <= pos {
 		err = errors.New("Invalid triples " + strconv.Itoa(pos))

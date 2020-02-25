@@ -125,12 +125,14 @@ func (blank BlankNode) SerializeTTL(prefix map[string]string) (ret string) {
 
 // SerializeTTL serializes a single Triple in ttl format
 func (trip Triple) SerializeTTL(prefix map[string]string) (ret string) {
-	ret = trip.Sub.SerializeTTL(prefix) + " " + trip.Pred.SerializeTTL(prefix) + " " + trip.Obj.SerializeTTL(prefix) + " ."
+	ret = trip.Sub.SerializeTTL(prefix) + " " + trip.Pred.SerializeTTL(prefix) + " " +
+		trip.Obj.SerializeTTL(prefix) + " ."
 	return
 }
 
 // checkPrefix checks if iri starts with same string as other iris and adds a prefix
-func checkPrefix(iri string, prefix map[string]string, single map[string]interface{}, prCounter int) (retCounter int) {
+func checkPrefix(iri string, prefix map[string]string, single map[string]interface{},
+	prCounter int) (retCounter int) {
 	retCounter = prCounter
 
 	prefTemp := getPrefix(iri)

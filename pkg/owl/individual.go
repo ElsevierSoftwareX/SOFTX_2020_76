@@ -51,13 +51,14 @@ import (
 )
 
 // extractIndividuals returns all nodes with type http://www.w3.org/2002/07/owl#NamedIndividual
-func extractIndividuals(g *rdf.Graph, classes map[string]*Class) (individuals map[string]*Individual,
-	err error) {
+func extractIndividuals(g *rdf.Graph,
+	classes map[string]*Class) (individuals map[string]*Individual, err error) {
 	individuals = make(map[string]*Individual)
 	// detrmine all individuals
 	for i := range g.Nodes {
 		for j := range g.Nodes[i].Edge {
-			if g.Nodes[i].Edge[j].Pred.String() == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" {
+			if g.Nodes[i].Edge[j].Pred.String() ==
+				"http://www.w3.org/1999/02/22-rdf-syntax-ns#type" {
 				if class, ok := classes[g.Nodes[i].Edge[j].Object.Term.String()]; ok {
 					ind := Individual{
 						Node:    g.Nodes[i],
@@ -75,7 +76,8 @@ func extractIndividuals(g *rdf.Graph, classes map[string]*Class) (individuals ma
 }
 
 // GetBaseType returns the base type of specified individuals
-func GetBaseType(individual []string, individuals map[string]*Individual, classes map[string]*Class) (base *Class, err error) {
+func GetBaseType(individual []string, individuals map[string]*Individual,
+	classes map[string]*Class) (base *Class, err error) {
 	indClass := make([]string, len(individual))
 	for i := range individual {
 		if ind, ok := individuals[individual[i]]; ok {

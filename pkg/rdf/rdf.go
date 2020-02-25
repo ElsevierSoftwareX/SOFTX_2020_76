@@ -42,6 +42,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+// Package rdf implements functions for serializing/deserializing to/from ttl and json-ld as well
+// as conversion of triples to a graph structure.
 package rdf
 
 import (
@@ -199,7 +201,8 @@ func NewLiteral(val interface{}, typ string) (lit Literal, err error) {
 			lit = Literal{str: t.Format(time.RFC3339), typeIRI: XsdDateTime, value: t}
 		}
 	case time.Duration:
-		sec := fmt.Sprintf("%v", float32(t.Seconds())-float32(int(t.Seconds()))+float32(int(t.Seconds())%60)) + "S"
+		sec := fmt.Sprintf("%v", float32(t.Seconds())-float32(int(t.Seconds()))+float32(int(
+			t.Seconds())%60)) + "S"
 		min := fmt.Sprintf("%v", int(t.Minutes())%60) + "M"
 		hour := fmt.Sprintf("%v", int(t.Hours())) + "H"
 		//day := fmt.Sprintf("%v", int(in.Hours())/24) + "D"

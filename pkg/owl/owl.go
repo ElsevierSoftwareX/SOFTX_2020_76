@@ -42,6 +42,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+// Package owl extracts classes and properties from an owl ontology and maps them to a Go model.
 package owl
 
 import (
@@ -53,10 +54,10 @@ type Ontology struct {
 	Class       map[string]*Class      // all classes (key = iri)
 	Property    map[string]*Property   // all properties (key = iri)
 	Individual  map[string]*Individual // all individuals (key = iri)
-	Imports     map[string][]string
-	Description map[string]string // comment about Ontology
-	Content     map[string][]byte // Ontology specification in ttl format
-	graph       *rdf.Graph
+	Imports     map[string][]string    // imported ontologies
+	Description map[string]string      // comment about Ontology
+	Content     map[string][]byte      // Ontology specification in ttl format
+	graph       *rdf.Graph             // graph of parsed owl document
 }
 
 // Class is one ontology class

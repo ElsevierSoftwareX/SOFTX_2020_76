@@ -42,6 +42,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+// Package codegen provides a function for generating a Go package based on a previously created
+// owl.GoModel.
 package codegen
 
 import (
@@ -59,6 +61,7 @@ func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 		return
 	}
 
+	// make dirs
 	for i := range mod {
 		err = os.MkdirAll(path+"/pkg/"+mod[i].Name, os.ModePerm)
 		if err != nil {
@@ -197,13 +200,14 @@ func generateReadme(ontName string, description string, iri string) (ret string)
 func generateModule(name string) (ret string) {
 	ret = "module " + name + "\n\n"
 	ret += "require (\n"
-	ret += "\tgit-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git v0.0.0-20200213111428-aecaebd2e2e4\n"
+	ret += "\tgit-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git v0.0.0-20200213111428-" +
+		"aecaebd2e2e4\n"
 	ret += "\tgopkg.in/asaskevich/govalidator.v9 v9.0.0-20180315120708-ccb8e960c48f\n"
 	ret += ")"
 	return
 }
 
-// generateHelper
+// generateHelper generates the helper functions in internal dir
 func generateHelper() (ret string) {
 	ret = template.HelperHeader + template.HelperAddToGraph
 	ret += template.HelperAddClassPropertyToGraph + template.HelperAddIntPropertyToGraph +
@@ -236,13 +240,14 @@ func generateHelper() (ret string) {
 	return
 }
 
-// generateModel
+// generateModel generates model.go
 func generateModel(mod *owl.GoModel) (ret string) {
 	// Header
 	ret = strings.Replace(template.ModelHeader, "###pkgName###", mod.Name, -1)
 	imports := ""
 	for i := range mod.Import {
-		imports += "\tim" + mod.Import[i].Name + " \"" + mod.Module + "/pkg/" + mod.Import[i].Name + "\"\n"
+		imports += "\tim" + mod.Import[i].Name + " \"" + mod.Module + "/pkg/" + mod.Import[i].Name +
+			"\"\n"
 	}
 	ret = strings.Replace(ret, "###imports###", imports, -1)
 
@@ -253,10 +258,11 @@ func generateModel(mod *owl.GoModel) (ret string) {
 		objectMaps += strings.Replace(template.StructMap, "###className###", mod.Class[i].Name, -1)
 	}
 	for i := range mod.Import {
-		importModels += strings.Replace(template.StructImport, "###importName###", mod.Import[i].Name, -1)
+		importModels += strings.Replace(template.StructImport, "###importName###",
+			mod.Import[i].Name, -1)
 	}
-	ret += strings.Replace(strings.Replace(template.ModelStruct, "###objectMaps###", objectMaps, -1),
-		"###importModels###", importModels, -1)
+	ret += strings.Replace(strings.Replace(template.ModelStruct, "###objectMaps###",
+		objectMaps, -1), "###importModels###", importModels, -1)
 
 	// New Model
 	makeMaps := ""
@@ -294,8 +300,8 @@ func generateModel(mod *owl.GoModel) (ret string) {
 			impPath := strings.Split(getImportPath(mod, impRecv[i].Name), ".")
 			if len(impPath) > 1 {
 				for j := range impRecv[i].Class {
-					newObjects += strings.Replace(strings.Replace(strings.Replace(template.NewObject,
-						"###className###", impRecv[i].Class[j].Name, -1),
+					newObjects += strings.Replace(strings.Replace(strings.Replace(
+						template.NewObject, "###className###", impRecv[i].Class[j].Name, -1),
 						"###capImportName###", strings.Title(impPath[len(impPath)-1]), -1),
 						"###classIRI###", impRecv[i].Class[j].IRI, -1)
 				}
@@ -317,10 +323,12 @@ func generateModel(mod *owl.GoModel) (ret string) {
 	deleteFromImports := ""
 	deleteFromMaps := ""
 	for i := range mod.Import {
-		deleteFromImports += strings.Replace(template.DeleteFromImport, "###importName###", mod.Import[i].Name, -1)
+		deleteFromImports += strings.Replace(template.DeleteFromImport, "###importName###",
+			mod.Import[i].Name, -1)
 	}
 	for i := range mod.Class {
-		deleteFromMaps += strings.Replace(template.DeleteFromMap, "###className###", mod.Class[i].Name, -1)
+		deleteFromMaps += strings.Replace(template.DeleteFromMap, "###className###",
+			mod.Class[i].Name, -1)
 	}
 	ret += strings.Replace(strings.Replace(template.ModelDeleteObject,
 		"###deleteFromImports###", deleteFromImports, -1),
@@ -338,7 +346,8 @@ func generateModel(mod *owl.GoModel) (ret string) {
 		replaceImports += strings.Replace(strings.Replace(template.ImportReplace,
 			"###importName###", impRecv[i].Name, -1),
 			"###importIRI###", impRecv[i].IRI+"#", -1)
-		shapeImports += strings.Replace(template.ImportShape, "###importIRI###", impRecv[i].IRI+"#", -1)
+		shapeImports += strings.Replace(template.ImportShape, "###importIRI###", impRecv[i].IRI+"#",
+			-1)
 	}
 	ret += strings.Replace(strings.Replace(template.ModelToDot,
 		"###importReplace###", replaceImports, -1),
@@ -346,14 +355,15 @@ func generateModel(mod *owl.GoModel) (ret string) {
 	return
 }
 
-// generateImport
+// generateImport generates import.go
 func generateImport(mod *owl.GoModel) (ret string) {
 	impRecv := getImportRecursive(mod)
 	// Header
 	ret = strings.Replace(template.ImportsHeader, "###pkgName###", mod.Name, -1)
 	imports := ""
 	for i := range impRecv {
-		imports += "\tim" + impRecv[i].Name + " \"" + mod.Module + "/pkg/" + impRecv[i].Name + "\"\n"
+		imports += "\tim" + impRecv[i].Name + " \"" + mod.Module + "/pkg/" + impRecv[i].Name +
+			"\"\n"
 	}
 	ret = strings.Replace(ret, "###imports###", imports, -1)
 
@@ -364,8 +374,9 @@ func generateImport(mod *owl.GoModel) (ret string) {
 			impPath := strings.Split(getImportPath(mod, impRecv[i].Name), ".")
 			if len(impPath) == 2 {
 				for j := range impRecv[i].Class {
-					ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(template.ImportsNewGetMethods,
-						"###className###", impRecv[i].Class[j].Name, -1),
+					ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(
+						strings.Replace(template.ImportsNewGetMethods,
+							"###className###", impRecv[i].Class[j].Name, -1),
 						"###capImportName###", strings.Title(impPath[1]), -1),
 						"###importName###", impPath[1], -1),
 						"###importModelName###", impPath[1], -1),
@@ -373,8 +384,9 @@ func generateImport(mod *owl.GoModel) (ret string) {
 				}
 			} else if len(impPath) > 2 {
 				for j := range impRecv[i].Class {
-					ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(template.ImportsNewGetMethods,
-						"###className###", impRecv[i].Class[j].Name, -1),
+					ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(
+						strings.Replace(template.ImportsNewGetMethods,
+							"###className###", impRecv[i].Class[j].Name, -1),
 						"###capImportName###", strings.Title(impPath[len(impPath)-1]), -1),
 						"###importName###", impPath[len(impPath)-1], -1),
 						"###importModelName###", impPath[1], -1),
@@ -387,7 +399,7 @@ func generateImport(mod *owl.GoModel) (ret string) {
 	return
 }
 
-// generateIndividuals
+// generateIndividuals generates individuals.go
 func generateIndividuals(mod *owl.GoModel) (ret string) {
 	// Header
 	ret = strings.Replace(template.Individual, "###pkgName###", mod.Name, -1)
@@ -395,7 +407,8 @@ func generateIndividuals(mod *owl.GoModel) (ret string) {
 	// individuals
 	createIndividuals := ""
 	for i := range mod.Individual {
-		createIndividuals += strings.Replace(strings.Replace(template.CreateIndividual, "###individualType###", mod.Individual[i].Typ, -1),
+		createIndividuals += strings.Replace(strings.Replace(template.CreateIndividual,
+			"###individualType###", mod.Individual[i].Typ, -1),
 			"###individualIRI###", mod.Individual[i].IRI, -1)
 	}
 	for i := range mod.Import {
@@ -413,7 +426,8 @@ func generateIndividuals(mod *owl.GoModel) (ret string) {
 	return
 }
 
-// generateProperties
+// generateProperties generates propinterface.go, propmanipulator.go, propserializer.go and
+// propstruct.go
 func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 	strImport := make(map[string]string)
 	manImport := make(map[string]string)
@@ -421,19 +435,24 @@ func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 	ifcImport := make(map[string]string)
 	for i := range mod.Class {
 		for j := range mod.Class[i].Property {
-			if mod.Class[i].Property[j].Multi || mod.Class[i].Property[j].AllowedTyp[0][0] != mod.Class[i].Property[j].BaseTyp[0] {
+			if mod.Class[i].Property[j].Multi ||
+				mod.Class[i].Property[j].AllowedTyp[0][0] != mod.Class[i].Property[j].BaseTyp[0] {
 				manImport["errors"] = ""
 			}
-			if mod.Class[i].Property[j].Typ[0] == "time.Time" || mod.Class[i].Property[j].Typ[0] == "time.Duration" {
+			if mod.Class[i].Property[j].Typ[0] == "time.Time" ||
+				mod.Class[i].Property[j].Typ[0] == "time.Duration" {
 				manImport["time"] = ""
 				strImport["time"] = ""
 				ifcImport["time"] = ""
 			}
 			if mod.Class[i].Property[j].BaseTyp[0] == "owl.Thing" {
-				strImport["git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl"] = ""
-				ifcImport["git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl"] = ""
+				strImport["git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl"] =
+					""
+				ifcImport["git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl"] =
+					""
 			}
-			if mod.Class[i].Property[j].BaseTyp[0] == "float64" || mod.Class[i].Property[j].BaseTyp[0] == "int" ||
+			if mod.Class[i].Property[j].BaseTyp[0] == "float64" ||
+				mod.Class[i].Property[j].BaseTyp[0] == "int" ||
 				mod.Class[i].Property[j].BaseTyp[0] == "bool" {
 				manImport["strconv"] = ""
 			}
@@ -442,7 +461,8 @@ func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 			}
 			temp := strings.Split(mod.Class[i].Property[j].BaseTyp[0], ".")
 			if len(temp) == 2 && mod.Class[i].Property[j].BaseTyp[0] != "time.Time" &&
-				mod.Class[i].Property[j].BaseTyp[0] != "time.Duration" && mod.Class[i].Property[j].BaseTyp[0] != "owl.Thing" {
+				mod.Class[i].Property[j].BaseTyp[0] != "time.Duration" &&
+				mod.Class[i].Property[j].BaseTyp[0] != "owl.Thing" {
 				ifcImport[mod.Module+"/pkg/"+strings.TrimPrefix(temp[0], "im")] = temp[0] + " "
 			}
 		}
@@ -540,7 +560,8 @@ func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 	return
 }
 
-// generatePropertyName
+// generatePropertyName generates the name of a property based on the type, basetype and allowed
+// types
 func generatePropertyName(prop owl.GoProperty) (ret string) {
 	ret = "prop" + prop.Capital + "Base"
 	if prop.BaseTyp[0] == "time.Time" {
@@ -584,26 +605,28 @@ func generatePropertyName(prop owl.GoProperty) (ret string) {
 	return
 }
 
-// generatePropertyStruct
+// generatePropertyStruct generates the struct that belongs to a property
 func generatePropertyStruct(prop owl.GoProperty) (ret string) {
 	propName := generatePropertyName(prop)
 	if prop.Multi {
-		if prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" || prop.Typ[0] == "float64" || prop.Typ[0] == "string" || prop.Typ[0] == "int" || prop.Typ[0] == "interface{}" {
-			ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(template.PropertyStructMultipleLiteral,
-				"###propName###", prop.Name, -1),
+		if prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" ||
+			prop.Typ[0] == "float64" || prop.Typ[0] == "string" || prop.Typ[0] == "int" ||
+			prop.Typ[0] == "interface{}" {
+			ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(
+				template.PropertyStructMultipleLiteral, "###propName###", prop.Name, -1),
 				"###propType###", prop.Typ[0], -1),
 				"###propLongName###", propName, -1),
 				"###comment###", prop.Comment, -1)
 		} else {
-			ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(template.PropertyStructMultipleClass,
-				"###propName###", prop.Name, -1),
+			ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(
+				template.PropertyStructMultipleClass, "###propName###", prop.Name, -1),
 				"###propType###", prop.Typ[0], -1),
 				"###propLongName###", propName, -1),
 				"###comment###", prop.Comment, -1)
 		}
 	} else {
-		ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(template.PropertyStructSingle,
-			"###propName###", prop.Name, -1),
+		ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(
+			template.PropertyStructSingle, "###propName###", prop.Name, -1),
 			"###propType###", prop.Typ[0], -1),
 			"###propLongName###", propName, -1),
 			"###comment###", prop.Comment, -1)
@@ -611,7 +634,7 @@ func generatePropertyStruct(prop owl.GoProperty) (ret string) {
 	return
 }
 
-// generatePropertyInterface
+// generatePropertyInterface generates the interface that belongs to a property
 func generatePropertyInterface(prop owl.GoProperty) (ret string) {
 	baseTypeNoImp := prop.BaseTyp[0]
 	temp := strings.Split(prop.BaseTyp[0], ".")
@@ -622,15 +645,15 @@ func generatePropertyInterface(prop owl.GoProperty) (ret string) {
 		baseTypeNoImp = "interface"
 	}
 	if prop.Multi {
-		ret = strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(template.PropertyInterfaceMultiple,
-			"###propCapital###", prop.Capital, -1),
+		ret = strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(
+			template.PropertyInterfaceMultiple, "###propCapital###", prop.Capital, -1),
 			"###propName###", prop.Name, -1),
 			"###propBaseTypeNoImp###", baseTypeNoImp, -1),
 			"###propBaseType###", prop.BaseTyp[0], -1),
 			"###comment###", prop.Comment, -1)
 	} else {
-		ret = strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(template.PropertyInterfaceSingle,
-			"###propCapital###", prop.Capital, -1),
+		ret = strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(
+			template.PropertyInterfaceSingle, "###propCapital###", prop.Capital, -1),
 			"###propName###", prop.Name, -1),
 			"###propBaseTypeNoImp###", baseTypeNoImp, -1),
 			"###propBaseType###", prop.BaseTyp[0], -1),
@@ -639,12 +662,13 @@ func generatePropertyInterface(prop owl.GoProperty) (ret string) {
 	return
 }
 
-// generatePropertyManipulator
+// generatePropertyManipulator generates the manipulator functions for a property
 func generatePropertyManipulator(prop owl.GoProperty) (ret string) {
 	propName := generatePropertyName(prop)
 	if prop.Multi {
-		if prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" || prop.Typ[0] == "float64" ||
-			prop.Typ[0] == "string" || prop.Typ[0] == "int" || prop.Typ[0] == "interface{}" {
+		if prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" ||
+			prop.Typ[0] == "float64" || prop.Typ[0] == "string" || prop.Typ[0] == "int" ||
+			prop.Typ[0] == "interface{}" {
 			if prop.Inverse != "" {
 				ret = template.PropertyGetMultipleLiteral
 			} else {
@@ -679,8 +703,9 @@ func generatePropertyManipulator(prop owl.GoProperty) (ret string) {
 		}
 	} else {
 		ret += template.PropertyGetSingle
-		if prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" || prop.Typ[0] == "float64" ||
-			prop.Typ[0] == "string" || prop.Typ[0] == "int" || prop.Typ[0] == "interface{}" && prop.Inverse == "" {
+		if prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" ||
+			prop.Typ[0] == "float64" || prop.Typ[0] == "string" || prop.Typ[0] == "int" ||
+			prop.Typ[0] == "interface{}" && prop.Inverse == "" {
 			if len(prop.AllowedTyp) == 1 && prop.AllowedTyp[0] == prop.BaseTyp {
 				ret += template.PropertySetSingleLiteral
 			} else {
@@ -712,8 +737,8 @@ func generatePropertyManipulator(prop owl.GoProperty) (ret string) {
 			}
 		}
 	}
-	ret = strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(ret,
-		"###propName###", prop.Name, -1),
+	ret = strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(
+		strings.Replace(ret, "###propName###", prop.Name, -1),
 		"###propType###", prop.Typ[0], -1),
 		"###propBaseType###", prop.BaseTyp[0], -1),
 		"###propLongName###", propName, -1),
@@ -733,43 +758,60 @@ func generatePropertyManipulator(prop owl.GoProperty) (ret string) {
 		case "time.Time":
 			switch prop.XSDTyp {
 			case "http://www.w3.org/2001/XMLSchema#dateTime":
-				initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###", template.PropInitDateTime, -1)
+				initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###",
+					template.PropInitDateTime, -1)
 			case "http://www.w3.org/2001/XMLSchema#date":
-				initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###", template.PropInitDate, -1)
+				initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###",
+					template.PropInitDate, -1)
 			case "http://www.w3.org/2001/XMLSchema#dateTimeStamp":
-				initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###", template.PropInitDateTimeStamp, -1)
+				initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###",
+					template.PropInitDateTimeStamp, -1)
 			case "http://www.w3.org/2001/XMLSchema#gYear":
-				initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###", template.PropInitGYear, -1)
+				initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###",
+					template.PropInitGYear, -1)
 			case "http://www.w3.org/2001/XMLSchema#gDay":
-				initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###", template.PropInitGDay, -1)
+				initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###",
+					template.PropInitGDay, -1)
 			case "http://www.w3.org/2001/XMLSchema#gYearMonth":
-				initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###", template.PropInitGYearMonth, -1)
+				initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###",
+					template.PropInitGYearMonth, -1)
 			case "http://www.w3.org/2001/XMLSchema#gMonth":
-				initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###", template.PropInitGMonth, -1)
+				initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###",
+					template.PropInitGMonth, -1)
 			}
 		case "time.Duration":
-			initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###", template.PropInitDuration, -1)
+			initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###",
+				template.PropInitDuration, -1)
 		case "int":
-			initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###", template.PropInitInt, -1)
+			initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###",
+				template.PropInitInt, -1)
 		case "float64":
-			initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###", template.PropInitFloat, -1)
+			initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###",
+				template.PropInitFloat, -1)
 		case "bool":
-			initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###", template.PropInitBool, -1)
+			initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###",
+				template.PropInitBool, -1)
 		case "string":
-			initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###", template.PropInitString, -1)
+			initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###",
+				template.PropInitString, -1)
 		case "interface{}":
-			initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###", template.PropInitInterface, -1)
+			initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###",
+				template.PropInitInterface, -1)
 		default:
 			tempSp := strings.Split(prop.BaseTyp[0], ".")
 			if prop.BaseTyp[0] == "owl.Thing" {
-				initProp = strings.Replace(template.PropertyInitClass, "###PropInit###", template.PropInitClassBaseThing, -1)
+				initProp = strings.Replace(template.PropertyInitClass, "###PropInit###",
+					template.PropInitClassBaseThing, -1)
 			} else if len(tempSp) > 1 {
 				imName := strings.TrimPrefix(tempSp[0], "im")
 				baseType = tempSp[1]
-				initProp = strings.Replace(template.PropertyInitClass, "###PropInit###", template.PropInitClassImport, -1)
-				initProp = strings.Replace(initProp, "###capImportName###", strings.Title(imName), -1)
+				initProp = strings.Replace(template.PropertyInitClass, "###PropInit###",
+					template.PropInitClassImport, -1)
+				initProp = strings.Replace(initProp, "###capImportName###", strings.Title(imName),
+					-1)
 			} else {
-				initProp = strings.Replace(template.PropertyInitClass, "###PropInit###", template.PropInitClassDefault, -1)
+				initProp = strings.Replace(template.PropertyInitClass, "###PropInit###",
+					template.PropInitClassDefault, -1)
 			}
 		}
 		ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(initProp,
@@ -778,8 +820,9 @@ func generatePropertyManipulator(prop owl.GoProperty) (ret string) {
 			"###propBaseType###", baseType, -1),
 			"###propCapital###", prop.Capital, -1)
 
-		if prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" || prop.Typ[0] == "float64" ||
-			prop.Typ[0] == "string" || prop.Typ[0] == "int" && prop.Inverse == "" || prop.Typ[0] == "bool" || prop.Typ[0] == "interface{}" {
+		if prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" ||
+			prop.Typ[0] == "float64" || prop.Typ[0] == "string" || prop.Typ[0] == "int" &&
+			prop.Inverse == "" || prop.Typ[0] == "bool" || prop.Typ[0] == "interface{}" {
 			return
 		}
 		if prop.Multi {
@@ -788,8 +831,8 @@ func generatePropertyManipulator(prop owl.GoProperty) (ret string) {
 				"###propBaseType###", prop.BaseTyp[0], -1),
 				"###propCapital###", prop.Capital, -1)
 		} else {
-			ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(template.PropertySingleRemove,
-				"###propLongName###", propName, -1),
+			ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(
+				template.PropertySingleRemove, "###propLongName###", propName, -1),
 				"###propBaseType###", prop.BaseTyp[0], -1),
 				"###propName###", prop.Name, -1),
 				"###propCapital###", prop.Capital, -1)
@@ -798,7 +841,7 @@ func generatePropertyManipulator(prop owl.GoProperty) (ret string) {
 	return
 }
 
-// generatePropertySerializer
+// generatePropertySerializer generates the serializer functions that belong to a property
 func generatePropertySerializer(prop owl.GoProperty) (ret string) {
 	propName := generatePropertyName(prop)
 	graphProp := ""
@@ -858,10 +901,10 @@ func generatePropertySerializer(prop owl.GoProperty) (ret string) {
 		ret = strings.Replace(template.PropertyGraphSingle, "###graphProp###", graphProp, -1)
 		ret += strings.Replace(template.PropertyStringSingle, "###stringProp###", stringProp, -1)
 	}
-	ret = strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(ret,
-		"###indent###", indent, -1),
-		"###array###", array, -1),
-		"###propName###", prop.Name, -1),
+	ret = strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(
+		strings.Replace(strings.Replace(strings.Replace(ret, "###indent###", indent, -1),
+			"###array###", array, -1),
+			"###propName###", prop.Name, -1),
 		"###propIRI###", prop.IRI, -1),
 		"###propType###", prop.Typ[0], -1),
 		"###propBaseType###", prop.BaseTyp[0], -1),
@@ -870,7 +913,7 @@ func generatePropertySerializer(prop owl.GoProperty) (ret string) {
 	return
 }
 
-// generateClass
+// generateClass generates the <class>.go file
 func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 	singleParent := false
 	if len(class.DirectParent) == 1 {
@@ -883,12 +926,16 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 		for i := range mod.Class[class.DirectParent[0]].Property {
 			for j := range class.Property {
 				if mod.Class[class.DirectParent[0]].Property[i].Name == class.Property[j].Name {
-					if mod.Class[class.DirectParent[0]].Property[i].BaseTyp[0] == class.Property[j].BaseTyp[0] &&
-						mod.Class[class.DirectParent[0]].Property[i].Typ[0] == class.Property[j].Typ[0] &&
-						len(mod.Class[class.DirectParent[0]].Property[i].AllowedTyp) == len(class.Property[j].AllowedTyp) {
+					if mod.Class[class.DirectParent[0]].Property[i].BaseTyp[0] ==
+						class.Property[j].BaseTyp[0] &&
+						mod.Class[class.DirectParent[0]].Property[i].Typ[0] ==
+							class.Property[j].Typ[0] &&
+						len(mod.Class[class.DirectParent[0]].Property[i].AllowedTyp) ==
+							len(class.Property[j].AllowedTyp) {
 						equalAllowedTypes := true
 						for k := range class.Property[j].AllowedTyp {
-							if class.Property[j].AllowedTyp[k][0] != mod.Class[class.DirectParent[0]].Property[i].AllowedTyp[k][0] {
+							if class.Property[j].AllowedTyp[k][0] !=
+								mod.Class[class.DirectParent[0]].Property[i].AllowedTyp[k][0] {
 								equalAllowedTypes = false
 								break
 							}
@@ -965,13 +1012,14 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 			if baseTypeNoImp == "interface{}" {
 				baseTypeNoImp = "interface"
 			}
-			interfaceMethods += strings.Replace(strings.Replace(strings.Replace(template.InterfaceInterface,
-				"###propName###", prop.Name, -1),
+			interfaceMethods += strings.Replace(strings.Replace(strings.Replace(
+				template.InterfaceInterface, "###propName###", prop.Name, -1),
 				"###propBaseTypeNoImp###", baseTypeNoImp, -1),
 				"###multi###", multi, -1)
 		}
 	}
-	interfaceInheritance := strings.Replace(template.InterfaceInheritance, "###parentName###", class.Name, -1)
+	interfaceInheritance := strings.Replace(template.InterfaceInheritance, "###parentName###",
+		class.Name, -1)
 	parents := make(map[string]interface{})
 	if !singleParent {
 		for i := range class.Parent {
@@ -979,12 +1027,14 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 			if len(tempSp) > 1 {
 				if _, ok := parents[tempSp[1]]; !ok {
 					parents[tempSp[1]] = nil
-					interfaceInheritance += strings.Replace(template.InterfaceInheritance, "###parentName###", tempSp[1], -1)
+					interfaceInheritance += strings.Replace(template.InterfaceInheritance,
+						"###parentName###", tempSp[1], -1)
 				}
 			} else {
 				if _, ok := parents[class.Parent[i]]; !ok {
 					parents[class.Parent[i]] = nil
-					interfaceInheritance += strings.Replace(template.InterfaceInheritance, "###parentName###", class.Parent[i], -1)
+					interfaceInheritance += strings.Replace(template.InterfaceInheritance,
+						"###parentName###", class.Parent[i], -1)
 				}
 			}
 		}
@@ -1012,7 +1062,8 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 			}
 		}
 		if !isParentProp {
-			structProperties += strings.Replace(template.StructProperty, "###propLongName###", generatePropertyName(class.Property[i]), -1)
+			structProperties += strings.Replace(template.StructProperty, "###propLongName###",
+				generatePropertyName(class.Property[i]), -1)
 		}
 	}
 	ret += strings.Replace(strings.Replace(template.ClassStruct,
@@ -1039,8 +1090,9 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 		if isParentProp {
 			continue
 		}
-		if prop.Multi && !(prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" || prop.Typ[0] == "float64" ||
-			prop.Typ[0] == "string" || prop.Typ[0] == "int" || prop.Typ[0] == "interface{}") {
+		if prop.Multi && !(prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" ||
+			prop.Typ[0] == "float64" || prop.Typ[0] == "string" || prop.Typ[0] == "int" ||
+			prop.Typ[0] == "interface{}") {
 			newMakeMaps += strings.Replace(strings.Replace(template.NewMakeMap,
 				"###propName###", prop.Name, -1),
 				"###propType###", prop.Typ[0], -1)
@@ -1094,7 +1146,8 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 			if len(tempSp) > 1 {
 
 			} else {
-				newAddToMaps += strings.Replace(template.AddToMap, "###parentName###", class.Parent[i], -1)
+				newAddToMaps += strings.Replace(template.AddToMap, "###parentName###",
+					class.Parent[i], -1)
 			}
 		}
 		newAddToMaps += strings.Replace(template.AddToMap, "###parentName###", "Thing", -1)
@@ -1124,8 +1177,9 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 		if isParentProp {
 			continue
 		}
-		if prop.BaseTyp[0] == "string" || prop.BaseTyp[0] == "float64" || prop.BaseTyp[0] == "int" ||
-			prop.BaseTyp[0] == "time.Time" || prop.BaseTyp[0] == "time.Duration" || prop.BaseTyp[0] == "bool" ||
+		if prop.BaseTyp[0] == "string" || prop.BaseTyp[0] == "float64" ||
+			prop.BaseTyp[0] == "int" || prop.BaseTyp[0] == "time.Time" ||
+			prop.BaseTyp[0] == "time.Duration" || prop.BaseTyp[0] == "bool" ||
 			prop.BaseTyp[0] == "interface{}" {
 			continue
 		}
@@ -1162,12 +1216,14 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 			if len(tempSp) > 1 {
 				if _, ok := parents[tempSp[1]]; !ok {
 					parents[tempSp[1]] = nil
-					ret += strings.Replace(template.ClassInheritance, "###parentName###", tempSp[1], -1)
+					ret += strings.Replace(template.ClassInheritance, "###parentName###",
+						tempSp[1], -1)
 				}
 			} else {
 				if _, ok := parents[class.Parent[i]]; !ok {
 					parents[class.Parent[i]] = nil
-					ret += strings.Replace(template.ClassInheritance, "###parentName###", class.Parent[i], -1)
+					ret += strings.Replace(template.ClassInheritance, "###parentName###",
+						class.Parent[i], -1)
 				}
 			}
 		}
@@ -1189,7 +1245,8 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 			propName := generatePropertyName(prop)
 			temp := ""
 			if class.Property[i].Multi {
-				if prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" || prop.Typ[0] == "float64" || prop.Typ[0] == "string" {
+				if prop.Typ[0] == "time.Time" || prop.Typ[0] == "time.Duration" ||
+					prop.Typ[0] == "float64" || prop.Typ[0] == "string" {
 					ret = ""
 					continue
 				}
@@ -1200,16 +1257,21 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 					inverseDelMultipleMultipleAllowed := ""
 					allowedString := "["
 					for j := range prop.AllowedTyp {
-						inverseAddMultipleMultipleAllowed += strings.Replace(template.InverseAddMultipleMultiple,
-							"###propAllowedType###", prop.AllowedTyp[j][0], -1)
-						inverseDelMultipleMultipleAllowed += strings.Replace(template.InverseDelMultipleMultiple,
-							"###propAllowedType###", prop.AllowedTyp[j][0], -1)
+						inverseAddMultipleMultipleAllowed += strings.Replace(
+							template.InverseAddMultipleMultiple, "###propAllowedType###",
+							prop.AllowedTyp[j][0], -1)
+						inverseDelMultipleMultipleAllowed += strings.Replace(
+							template.InverseDelMultipleMultiple, "###propAllowedType###",
+							prop.AllowedTyp[j][0], -1)
 						allowedString += prop.AllowedTyp[j][0] + ", "
 					}
 					allowedString += "]"
-					temp = strings.Replace(strings.Replace(strings.Replace(template.ClassInverseMultipleMultiple,
-						"###inverseAddMultipleMultipleAllowed###", inverseAddMultipleMultipleAllowed, -1),
-						"###inverseDelMultipleMultipleAllowed###", inverseDelMultipleMultipleAllowed, -1),
+					temp = strings.Replace(strings.Replace(strings.Replace(
+						template.ClassInverseMultipleMultiple,
+						"###inverseAddMultipleMultipleAllowed###",
+						inverseAddMultipleMultipleAllowed, -1),
+						"###inverseDelMultipleMultipleAllowed###",
+						inverseDelMultipleMultipleAllowed, -1),
 						"###allowedTypes###", allowedString, -1)
 				}
 			} else {
@@ -1220,22 +1282,26 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 					inverseSetSingleMultipleTwo := ""
 					inverseSetSingleMultipleThree := ""
 					for j := range prop.AllowedTyp {
-						inverseSetSingleMultipleOne += strings.Replace(template.InverseSetSingleMultipleOne,
-							"###propAllowedType###", prop.AllowedTyp[j][0], -1)
-						inverseSetSingleMultipleTwo += strings.Replace(template.InverseSetSingleMultipleTwo,
-							"###propAllowedType###", prop.AllowedTyp[j][0], -1)
-						inverseSetSingleMultipleThree += strings.Replace(template.InverseSetSingleMultipleThree,
-							"###propAllowedType###", prop.AllowedTyp[j][0], -1)
+						inverseSetSingleMultipleOne += strings.Replace(
+							template.InverseSetSingleMultipleOne, "###propAllowedType###",
+							prop.AllowedTyp[j][0], -1)
+						inverseSetSingleMultipleTwo += strings.Replace(
+							template.InverseSetSingleMultipleTwo, "###propAllowedType###",
+							prop.AllowedTyp[j][0], -1)
+						inverseSetSingleMultipleThree += strings.Replace(
+							template.InverseSetSingleMultipleThree, "###propAllowedType###",
+							prop.AllowedTyp[j][0], -1)
 					}
-					temp = strings.Replace(strings.Replace(strings.Replace(template.ClassInverseSingleMultiple,
+					temp = strings.Replace(strings.Replace(strings.Replace(
+						template.ClassInverseSingleMultiple,
 						"###inverseSetSingleMultipleOne###", inverseSetSingleMultipleOne, -1),
 						"###inverseSetSingleMultipleTwo###", inverseSetSingleMultipleTwo, -1),
 						"###inverseSetSingleMultipleThree###", inverseSetSingleMultipleThree, -1)
 				}
 			}
-			ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(temp,
-				"###propCapital###", prop.Capital, -1),
-				"###comment###", prop.Comment, -1),
+			ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(strings.Replace(
+				strings.Replace(strings.Replace(temp, "###propCapital###", prop.Capital, -1),
+					"###comment###", prop.Comment, -1),
 				"###propName###", prop.Name, -1),
 				"###propInverse###", prop.Inverse, -1),
 				"###propLongName###", propName, -1),
@@ -1268,8 +1334,8 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 		if prop.Inverse == "" {
 			propName := generatePropertyName(prop)
 			if prop.Typ[0] == "time.Time" || prop.Typ[0] == "int" || prop.Typ[0] == "string" ||
-				prop.Typ[0] == "float64" || prop.Typ[0] == "bool" || prop.Typ[0] == "time.Duration" ||
-				prop.Typ[0] == "interface{}" {
+				prop.Typ[0] == "float64" || prop.Typ[0] == "bool" ||
+				prop.Typ[0] == "time.Duration" || prop.Typ[0] == "interface{}" {
 				initSwitchProps += strings.Replace(strings.Replace(temp,
 					"###PropInit###", template.PropInitLiteralNonInverse, -1),
 					"###propLongName###", propName, -1)
@@ -1354,7 +1420,8 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 			}
 		}
 		if !isParentProp {
-			toGraphProps += strings.Replace(template.ToGraphProp, "###propLongName###", generatePropertyName(class.Property[i]), -1)
+			toGraphProps += strings.Replace(template.ToGraphProp, "###propLongName###",
+				generatePropertyName(class.Property[i]), -1)
 		}
 	}
 	if toGraphProps == "" {
@@ -1384,7 +1451,8 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 			}
 		}
 		if !isParentProp {
-			stringProps += strings.Replace(template.StringProp, "###propLongName###", generatePropertyName(class.Property[i]), -1)
+			stringProps += strings.Replace(template.StringProp, "###propLongName###",
+				generatePropertyName(class.Property[i]), -1)
 		}
 	}
 	ret += template.ClassString

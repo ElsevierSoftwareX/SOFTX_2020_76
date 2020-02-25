@@ -223,6 +223,7 @@ func getUnionValues(node *rdf.Node) (ret []*rdf.Node) {
 	return
 }
 
+// requestOntology requests a ontology via http
 func requestOntology(path string) (resp *http.Response, err error) {
 	client := &http.Client{
 		Timeout: time.Second * 2,

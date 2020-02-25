@@ -57,7 +57,8 @@ func extractProperties(g *rdf.Graph) (properties map[string]*Property, err error
 	// detrmine all properties
 	for i := range g.Nodes {
 		for j := range g.Nodes[i].Edge {
-			if g.Nodes[i].Edge[j].Pred.String() == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+			if g.Nodes[i].Edge[j].Pred.String() ==
+				"http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
 				(g.Nodes[i].Edge[j].Object.Term.String() ==
 					"http://www.w3.org/2002/07/owl#ObjectProperty" ||
 					g.Nodes[i].Edge[j].Object.Term.String() ==
@@ -88,7 +89,8 @@ func getRange(node *rdf.Node) (ret []string) {
 		if node.Edge[i].Pred.String() == "http://www.w3.org/2000/01/rdf-schema#range" {
 			if node.Edge[i].Object.Term.Type() == rdf.TermBlankNode {
 				for j := range node.Edge[i].Object.Edge {
-					if node.Edge[i].Object.Edge[j].Pred.String() == "http://www.w3.org/2002/07/owl#oneOf" {
+					if node.Edge[i].Object.Edge[j].Pred.String() ==
+						"http://www.w3.org/2002/07/owl#oneOf" {
 						enumNodes := getUnionValues(node.Edge[i].Object.Edge[j].Object)
 						for k := range enumNodes {
 							ret = append(ret, enumNodes[k].Term.String())
@@ -104,7 +106,7 @@ func getRange(node *rdf.Node) (ret []string) {
 	return
 }
 
-// extractPropertyCharacteristics extracts // owl:functionalProperty, // owlInverseFunctionalProperty,
+// extractPropertyCharacteristics extracts owl:functionalProperty, owlInverseFunctionalProperty,
 // owl:TransistiveProperty, owl:SysmmetricProperty
 func (prop *Property) extractPropertyCharacteristics() (err error) {
 	prop.IsFunctional = false
@@ -198,8 +200,8 @@ func (on *Ontology) addPropertyDomain() (err error) {
 				}
 			}
 			if !restExist {
-				on.Property[i].Domain[j].Restriction = append(on.Property[i].Domain[j].Restriction, &rest)
-				// fmt.Println("added property " + gon.Property[i].Name + " to class " + gon.Property[i].Domain[j].Name)
+				on.Property[i].Domain[j].Restriction = append(on.Property[i].Domain[j].Restriction,
+					&rest)
 			}
 		}
 	}

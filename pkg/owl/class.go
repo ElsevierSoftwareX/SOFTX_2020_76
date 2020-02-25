@@ -58,12 +58,15 @@ func extractClasses(g *rdf.Graph) (classes map[string]*Class, err error) {
 	// detrmine all classes
 	for i := range g.Nodes {
 		for j := range g.Nodes[i].Edge {
-			if g.Nodes[i].Edge[j].Pred.String() == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+			if g.Nodes[i].Edge[j].Pred.String() ==
+				"http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
 				g.Nodes[i].Edge[j].Object.Term.String() == "http://www.w3.org/2002/07/owl#Class" {
 				isDeprecated := false
 				for k := range g.Nodes[i].Edge {
-					if g.Nodes[i].Edge[k].Pred.String() == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
-						g.Nodes[i].Edge[k].Object.Term.String() == "http://www.w3.org/2002/07/owl#DeprecatedClass" {
+					if g.Nodes[i].Edge[k].Pred.String() ==
+						"http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+						g.Nodes[i].Edge[k].Object.Term.String() ==
+							"http://www.w3.org/2002/07/owl#DeprecatedClass" {
 						isDeprecated = true
 						break
 					}
@@ -114,7 +117,8 @@ func (on *Ontology) postProcessClasses() (err error) {
 	return
 }
 
-// extractInheritance extracts all direct parent classes and adds itself to children of these classes
+// extractInheritance extracts all direct parent classes and adds itself to children of these
+// classes
 func (class *Class) extractInheritance(on *Ontology) (err error) {
 	for i := range class.Node.Edge {
 		if class.Node.Edge[i].Pred.String() == "http://www.w3.org/2000/01/rdf-schema#subClassOf" {
@@ -154,8 +158,10 @@ func (class *Class) extractRestrictions(on *Ontology) (err error) {
 			parent := class.Node.Edge[i].Object
 			for j := range parent.Edge {
 				// single restriction
-				if parent.Edge[j].Pred.String() == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
-					parent.Edge[j].Object.Term.String() == "http://www.w3.org/2002/07/owl#Restriction" {
+				if parent.Edge[j].Pred.String() ==
+					"http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
+					parent.Edge[j].Object.Term.String() ==
+						"http://www.w3.org/2002/07/owl#Restriction" {
 					rest := Restriction{
 						Node: parent,
 					}
@@ -252,7 +258,8 @@ func (rest *Restriction) extractValueConstraint(on *Ontology) (err error) {
 		} else if rest.Node.Edge[i].Pred.String() == "http://www.w3.org/2002/07/owl#hasValue" {
 			rest.ValueConstraint = "http://www.w3.org/2002/07/owl#hasValue"
 			rest.Value = append(rest.Value, getRestrictionValues(rest.Node.Edge[i].Object)...)
-		} else if rest.Node.Edge[i].Pred.String() == "http://www.w3.org/2002/07/owl#someValuesFrom" {
+		} else if rest.Node.Edge[i].Pred.String() ==
+			"http://www.w3.org/2002/07/owl#someValuesFrom" {
 			rest.ValueConstraint = "http://www.w3.org/2002/07/owl#someValuesFrom"
 			rest.Value = append(rest.Value, getRestrictionValues(rest.Node.Edge[i].Object)...)
 		}
@@ -278,7 +285,8 @@ func (rest *Restriction) extractCardinalityConstraint(on *Ontology) (err error) 
 			rest.Node.Edge[i].Pred.String() ==
 				"http://www.w3.org/2002/07/owl#qualifiedCardinality" ||
 			rest.Node.Edge[i].Pred.String() == "http://www.w3.org/2002/07/owl#cardinality" ||
-			rest.Node.Edge[i].Pred.String() == "http://www.w3.org/2002/07/owl#maxQualifiedCardinality" ||
+			rest.Node.Edge[i].Pred.String() ==
+				"http://www.w3.org/2002/07/owl#maxQualifiedCardinality" ||
 			rest.Node.Edge[i].Pred.String() == "http://www.w3.org/2002/07/owl#maxCardinality" {
 			rest.CardinalityConstraint = rest.Node.Edge[i].Pred.String()
 			num, err := strconv.Atoi(rest.Node.Edge[i].Object.Term.String())
@@ -542,9 +550,10 @@ func (class *Class) String() (ret string) {
 	}
 	ret += "\n\tRestrictions: "
 	for i := range class.Restriction {
-		ret += class.Restriction[i].Node.Term.String() + " on " + class.Restriction[i].Property.Name +
-			" with ValueConstraint {" + class.Restriction[i].ValueConstraint + "} " +
-			" with CardinalityConstraint {" + class.Restriction[i].CardinalityConstraint + " " +
+		ret += class.Restriction[i].Node.Term.String() + " on " +
+			class.Restriction[i].Property.Name + " with ValueConstraint {" +
+			class.Restriction[i].ValueConstraint + "} " + " with CardinalityConstraint {" +
+			class.Restriction[i].CardinalityConstraint + " " +
 			strconv.Itoa(class.Restriction[i].Multiplicity) + "} and value ["
 		for j := range class.Restriction[i].Value {
 			ret += class.Restriction[i].Value[j] + ", "

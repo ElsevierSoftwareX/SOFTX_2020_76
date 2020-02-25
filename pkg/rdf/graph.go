@@ -229,7 +229,8 @@ func (graph *Graph) Merge(gIn *Graph) (err error) {
 }
 
 // ToGraphvizDot exports a graph to the graphviz dot format
-func (graph *Graph) ToGraphvizDot(output io.Writer, replace map[string]string, nodeShape map[string]string) (err error) {
+func (graph *Graph) ToGraphvizDot(output io.Writer, replace map[string]string,
+	nodeShape map[string]string) (err error) {
 	labelIndex := make(map[string]int)
 	Index := 0
 	dot := "digraph model\n{\n"

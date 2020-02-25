@@ -206,7 +206,8 @@ func (mod *GoModel) extractClass(class *Class, ont *Ontology) (goClass GoClass, 
 		var property GoProperty
 		property.Name, property.Capital, property.IRI = getRestrictionNameAndIRI(restInv[i], ont)
 		if property.Name == "" {
-			err = errors.New("Class " + class.Name + " unknown property " + restInv[i].Property.Name)
+			err = errors.New("Class " + class.Name + " unknown property " +
+				restInv[i].Property.Name)
 			return
 		}
 		if _, ok := ont.Property[restInv[i].Property.Name]; ok {
@@ -216,7 +217,8 @@ func (mod *GoModel) extractClass(class *Class, ont *Ontology) (goClass GoClass, 
 		var im string
 		property.BaseTyp, exist, im = getRestrictionType(restInv[i], ont)
 		if !exist {
-			err = errors.New("Class " + class.Name + " Restriction " + restInv[i].Property.Name + " unknown base type " + property.BaseTyp[0])
+			err = errors.New("Class " + class.Name + " Restriction " + restInv[i].Property.Name +
+				" unknown base type " + property.BaseTyp[0])
 			return
 		}
 		if im != "" && !strings.HasSuffix(mod.IRI, im) {
@@ -251,7 +253,8 @@ func (mod *GoModel) extractClass(class *Class, ont *Ontology) (goClass GoClass, 
 					} else if len(restInv[i].Value) > 0 {
 						property.XSDTyp = restInv[i].Value[0]
 					} else {
-						err = errors.New("Class " + class.Name + " Restriction " + restInv[i].Property.Name + " no xsd type")
+						err = errors.New("Class " + class.Name + " Restriction " +
+							restInv[i].Property.Name + " no xsd type")
 						return
 					}
 				}
@@ -271,9 +274,11 @@ func (mod *GoModel) extractClass(class *Class, ont *Ontology) (goClass GoClass, 
 				property.Individual, err = getIndividuals(rest[j], ont)
 			}
 		}
-		if b, _ := GetBaseClass([]string{property.BaseTyp[1], property.Typ[1]}, ont.Class); property.BaseTyp[0] != property.Typ[0] && b == nil {
-			if property.Typ[0] == "string" || property.Typ[0] == "time.Time" || property.Typ[0] == "time.Duration" ||
-				property.Typ[0] == "int" || property.Typ[0] == "float64" || property.Typ[0] == "bool" {
+		b, _ := GetBaseClass([]string{property.BaseTyp[1], property.Typ[1]}, ont.Class)
+		if property.BaseTyp[0] != property.Typ[0] && b == nil {
+			if property.Typ[0] == "string" || property.Typ[0] == "time.Time" ||
+				property.Typ[0] == "time.Duration" || property.Typ[0] == "int" ||
+				property.Typ[0] == "float64" || property.Typ[0] == "bool" {
 
 			} else {
 				// WARNING: This removes properties that are present in specification (relevant for saref4ener:PowerProfile:consists of; saref4ener:AlternativesGroup does not inherit from saref:Profile)
@@ -287,7 +292,8 @@ func (mod *GoModel) extractClass(class *Class, ont *Ontology) (goClass GoClass, 
 }
 
 // getRestrictionNameAndIRI returns the name and iri of a restriction
-func getRestrictionNameAndIRI(rest *Restriction, ont *Ontology) (name string, capital string, iri string) {
+func getRestrictionNameAndIRI(rest *Restriction, ont *Ontology) (name string, capital string,
+	iri string) {
 	name, _ = trimName(rest.Property.Name, ont)
 	a := []rune(name)
 	a[0] = unicode.ToLower(a[0])
@@ -297,7 +303,8 @@ func getRestrictionNameAndIRI(rest *Restriction, ont *Ontology) (name string, ca
 	return
 }
 
-// getRestrictionMultiplicity returns an indicator if restrictions allows multipe values and a string for slice or array creation
+// getRestrictionMultiplicity returns an indicator if restrictions allows multipe values and a
+// string for slice or array creation
 func getRestrictionMultiplicity(rest *Restriction) (multi bool, multiplicity string) {
 	if rest.ValueConstraint == "http://www.w3.org/2002/07/owl#allValuesFrom" ||
 		rest.ValueConstraint == "http://www.w3.org/2002/07/owl#someValuesFrom" ||
@@ -321,7 +328,8 @@ func getRestrictionMultiplicity(rest *Restriction) (multi bool, multiplicity str
 }
 
 // getRestrictionAllowedTypes returns the allowed types of a restriction
-func getRestrictionAllowedTypes(rest *Restriction, ont *Ontology) (values [][2]string, importNames []string) {
+func getRestrictionAllowedTypes(rest *Restriction, ont *Ontology) (values [][2]string,
+	importNames []string) {
 	if rest.ValueConstraint == "http://www.w3.org/2002/07/owl#hasValue" {
 		base, err := GetBaseType(rest.Value, ont.Individual, ont.Class)
 		if err != nil {
@@ -417,11 +425,13 @@ func getIndividuals(rest *Restriction, ont *Ontology) (inds []string, err error)
 }
 
 // extractIndividual
-func (mod *GoModel) extractIndividual(individual *Individual, ont *Ontology) (goIndividual GoIndividual) {
+func (mod *GoModel) extractIndividual(individual *Individual,
+	ont *Ontology) (goIndividual GoIndividual) {
 	if temp, _ := trimName(individual.Name, ont); temp != "" {
 		goIndividual.Name = temp
 	} else if strings.HasPrefix(individual.Name, "http://www.wurvoc.org/vocabularies/om-1.8") {
-		goIndividual.Name = strings.TrimPrefix(individual.Name, "http://www.wurvoc.org/vocabularies/om-1.8/")
+		goIndividual.Name = strings.TrimPrefix(individual.Name,
+			"http://www.wurvoc.org/vocabularies/om-1.8/")
 	}
 	if goIndividual.Name == "" {
 		return
