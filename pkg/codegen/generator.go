@@ -203,7 +203,8 @@ func generateModule(name string) (ret string) {
 	ret += "\tgit-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git v0.0.0-20200213111428-" +
 		"aecaebd2e2e4\n"
 	ret += "\tgopkg.in/asaskevich/govalidator.v9 v9.0.0-20180315120708-ccb8e960c48f\n"
-	ret += ")"
+	ret += ")\n\n"
+	ret += "go 1.13"
 	return
 }
 
