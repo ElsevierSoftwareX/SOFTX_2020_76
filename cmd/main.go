@@ -64,14 +64,17 @@ func main() {
 
 	var err error
 	var on owl.Ontology
+	var file *os.File
 	// on, err = owl.ExtractOntology("https://data.nasa.gov/ontologies/atmonto/general.ttl")
-	on, err = owl.ExtractOntology("https://w3id.org/saref")
+	on, err = owl.ExtractOntologyLink("https://w3id.org/saref")
+	// on, err = owl.ExtractOntologyLink("https://w3id.org/saref4ener")
+	// file, _ = os.Open("test.ttl")
+	// on, err = owl.ExtractOntology(file)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	var file *os.File
 	// classes
 	file, err = os.Create("classes.dat")
 	for i := range on.Class {
@@ -94,12 +97,13 @@ func main() {
 	file.Close()
 
 	var mod []owl.GoModel
-	mod, err = owl.MapModel(&on, "git-ce.rwth-aachen.de/acs/private/research/agent/saref.git")
+	// mod, err = owl.MapModel(&on, "git-ce.rwth-aachen.de/acs/private/research/agent/saref.git")
+	mod, err = owl.MapModel(&on, "git-ce.rwth-aachen.de/acs/private/research/agent/test.git")
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	err = codegen.GenerateGoCode(mod, "../../saref")
+	err = codegen.GenerateGoCode(mod, "../../test")
 	if err != nil {
 		fmt.Println(err)
 	}

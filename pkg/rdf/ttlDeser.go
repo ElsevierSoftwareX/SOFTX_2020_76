@@ -49,6 +49,7 @@ import (
 	"errors"
 	"io"
 	"strconv"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -102,21 +103,31 @@ func DecodeTTL(input io.Reader) (trip []Triple, err error) {
 
 // parseRunes parses all runes from the reader and omits empty lines and comments
 func (p *parser) parseRunes() (err error) {
+	eof := false
 	for {
 		var line []byte
 		line, err = p.reader.ReadBytes('\n')
 		if err != nil {
 			if err == io.EOF {
 				err = nil
+			} else {
+				return
 			}
-			break
+			eof = true
 		}
 		if len(line) == 0 {
+			if eof {
+				break
+			}
 			continue
 		}
 		pos := 0
-		// omit new line at end of slice
-		for pos < len(line)-1 {
+		// omit new line at end of slice (but only if not last line)
+		stop := len(line) - 1
+		if eof {
+			stop = len(line) - 1
+		}
+		for pos < stop {
 			var r rune
 			var s int
 			r, s = utf8.DecodeRune(line[pos:])
@@ -126,8 +137,16 @@ func (p *parser) parseRunes() (err error) {
 			if pos == 0 && r == '#' {
 				break
 			}
+			if r == '\t' {
+				r = ' '
+			} else if r == '\n' {
+				// continue
+			}
 			p.runes = append(p.runes, r)
 			pos += s
+		}
+		if eof {
+			break
 		}
 	}
 	return
@@ -252,7 +271,7 @@ func (p *parser) parseDirective(pos int) (length int, err error) {
 	if p.isEqual(pos+length, ".") {
 		length++
 	} else {
-		err = errors.New("No dot")
+		err = errors.New("missing dot at end of directive")
 		return
 	}
 	length += p.consumeWS(pos + length)
@@ -265,7 +284,6 @@ func (p *parser) parsePrefix(pos int) (prefix string, length int, err error) {
 		err = errors.New("Prefix error " + strconv.Itoa(pos))
 	}
 	prefix, length, err = p.parseUntil(pos, ':')
-	// fmt.Println("Prefix:" + prefix + "end")
 	length++
 	return
 }
@@ -310,7 +328,7 @@ func (p *parser) parseTriples(pos int) (length int, err error) {
 	if p.isEqual(pos+length, ".") {
 		length++
 	} else {
-		err = errors.New("No dot")
+		err = errors.New("missing dot at end of triples with subject " + trip.Sub.String() + string(p.runes[pos+length-1]))
 		return
 	}
 	length += p.consumeWS(pos + length)
@@ -497,6 +515,13 @@ func (p *parser) parsePrefixedName(pos int) (iri string, length int, err error) 
 	var name string
 	var tempLength int
 	name, tempLength, err = p.parseUntil(pos+length, ' ')
+	if strings.ContainsRune(name, ',') {
+		name, tempLength, err = p.parseUntil(pos+length, ',')
+	} else if strings.ContainsRune(name, ';') {
+		name, tempLength, err = p.parseUntil(pos+length, ';')
+	} else if strings.ContainsRune(name, '.') {
+		name, tempLength, err = p.parseUntil(pos+length, '.')
+	}
 	if err != nil {
 		return
 	}
@@ -557,6 +582,13 @@ func (p *parser) parseRDFLiteral(pos int) (lit Literal, length int, err error) {
 		length++
 		var tempLength int
 		lit.langTag, tempLength, err = p.parseUntil(pos+length, ' ')
+		if strings.ContainsRune(lit.langTag, ',') {
+			lit.langTag, tempLength, err = p.parseUntil(pos+length, ',')
+		} else if strings.ContainsRune(lit.langTag, ';') {
+			lit.langTag, tempLength, err = p.parseUntil(pos+length, ';')
+		} else if strings.ContainsRune(lit.langTag, '.') {
+			lit.langTag, tempLength, err = p.parseUntil(pos+length, '.')
+		}
 		if err != nil {
 			return
 		}

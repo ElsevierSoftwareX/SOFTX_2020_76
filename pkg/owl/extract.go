@@ -45,6 +45,7 @@ THE SOFTWARE.
 package owl
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -54,8 +55,20 @@ import (
 	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf"
 )
 
+// ExtractOntologyLink extracts all classes, properties, individuals and imports
+func ExtractOntologyLink(link string) (on Ontology, err error) {
+	var resp *http.Response
+	resp, err = requestOntology(link)
+	if err != nil {
+		return
+	}
+	on, err = ExtractOntology(resp.Body)
+	resp.Body.Close()
+	return
+}
+
 // ExtractOntology extracts all classes, properties, individuals and imports
-func ExtractOntology(link string) (on Ontology, err error) {
+func ExtractOntology(input io.Reader) (on Ontology, err error) {
 	iri := ""
 	description := ""
 	on.Class = make(map[string]*Class)
@@ -65,17 +78,11 @@ func ExtractOntology(link string) (on Ontology, err error) {
 	on.Description = make(map[string]string)
 	on.Content = make(map[string][]byte)
 
-	var resp *http.Response
-	resp, err = requestOntology(link)
-	if err != nil {
-		return
-	}
 	var g rdf.Graph
-	g, iri, description, _, err = parseOntology(resp.Body)
+	g, iri, description, _, err = parseOntology(input)
 	if err != nil {
 		return
 	}
-	resp.Body.Close()
 
 	on.graph = &g
 	on.Description[iri] = description
@@ -123,6 +130,7 @@ func parseOntology(input io.Reader) (g rdf.Graph, iri string, description string
 	fmt.Println("Read TTL input")
 	g, err = readTTL(input)
 	if err != nil {
+		err = errors.New("Cannot parse ontology: " + err.Error())
 		return
 	}
 
@@ -173,6 +181,7 @@ func (on *Ontology) parseImports(gIn *rdf.Graph) (err error) {
 			var desc string
 			g, impIRI, desc, _, err = parseOntology(resp.Body)
 			if err != nil {
+				err = errors.New("Error parsing import " + gIn.Edges[i].Object.Term.String())
 				return
 			}
 			resp.Body.Close()
