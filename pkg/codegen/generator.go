@@ -103,7 +103,7 @@ func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 		return
 	}
 	help := generateHelper()
-	fmt.Fprintln(file, help)
+	fmt.Fprintln(file, template.OSSHeader+help)
 	file.Close()
 
 	for i := range mod {
@@ -114,7 +114,7 @@ func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 			return
 		}
 		model := generateModel(&mod[i])
-		fmt.Fprintln(file, model)
+		fmt.Fprintln(file, template.OSSHeader+model)
 		file.Close()
 
 		// imports
@@ -124,7 +124,7 @@ func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 				return
 			}
 			imp := generateImport(&mod[i])
-			fmt.Fprintln(file, imp)
+			fmt.Fprintln(file, template.OSSHeader+imp)
 			file.Close()
 		}
 
@@ -134,7 +134,7 @@ func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 			return
 		}
 		ind := generateIndividuals(&mod[i])
-		fmt.Fprintln(file, ind)
+		fmt.Fprintln(file, template.OSSHeader+ind)
 		file.Close()
 
 		// Properties struct
@@ -143,7 +143,7 @@ func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 			return
 		}
 		str, man, ser, ifc := generateProperties(&mod[i])
-		fmt.Fprintln(file, str)
+		fmt.Fprintln(file, template.OSSHeader+str)
 		file.Close()
 
 		// Properties interface
@@ -151,7 +151,7 @@ func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 		if err != nil {
 			return
 		}
-		fmt.Fprintln(file, ifc)
+		fmt.Fprintln(file, template.OSSHeader+ifc)
 		file.Close()
 
 		// Properties manipulator
@@ -159,7 +159,7 @@ func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 		if err != nil {
 			return
 		}
-		fmt.Fprintln(file, man)
+		fmt.Fprintln(file, template.OSSHeader+man)
 		file.Close()
 
 		// Properties serializer
@@ -167,7 +167,7 @@ func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 		if err != nil {
 			return
 		}
-		fmt.Fprintln(file, ser)
+		fmt.Fprintln(file, template.OSSHeader+ser)
 		file.Close()
 
 		// Classes
@@ -177,7 +177,7 @@ func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 				return
 			}
 			class := generateClass(mod[i].Class[j], &mod[i])
-			fmt.Fprintln(file, class)
+			fmt.Fprintln(file, template.OSSHeader+class)
 			file.Close()
 		}
 
