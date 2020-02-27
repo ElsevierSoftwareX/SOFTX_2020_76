@@ -48,8 +48,8 @@ import (
 	"fmt"
 	"os"
 
-	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/codegen"
-	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl"
+	"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/codegen"
+	"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/owl"
 )
 
 func main() {

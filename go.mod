@@ -1,4 +1,4 @@
-module git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git
+module git.rwth-aachen.de/acs/public/ontology/owl/owl2go
 
 require (
 	github.com/piprate/json-gold v0.2.0

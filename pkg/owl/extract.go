@@ -52,7 +52,7 @@ import (
 	"regexp"
 	"time"
 
-	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf"
+	"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/rdf"
 )
 
 // ExtractOntologyLink extracts all classes, properties, individuals and imports

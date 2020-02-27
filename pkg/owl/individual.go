@@ -48,7 +48,7 @@ import (
 	"errors"
 	"fmt"
 
-	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf"
+	"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/rdf"
 )
 
 // extractIndividuals returns all nodes with type http://www.w3.org/2002/07/owl#NamedIndividual

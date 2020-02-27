@@ -51,8 +51,8 @@ import (
 	"os"
 	"strings"
 
-	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/codegen/template"
-	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl"
+	"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/codegen/template"
+	"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/owl"
 )
 
 // GenerateGoCode generates the go package for a model
@@ -202,7 +202,7 @@ func generateReadme(ontName string, description string, iri string) (ret string)
 func generateModule(name string) (ret string) {
 	ret = "module " + name + "\n\n"
 	ret += "require (\n"
-	ret += "\tgit-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git v0.0.0-20200213111428-" +
+	ret += "\tgit.rwth-aachen.de/acs/public/ontology/owl/owl2go v0.0.0-20200213111428-" +
 		"aecaebd2e2e4\n"
 	ret += "\tgopkg.in/asaskevich/govalidator.v9 v9.0.0-20180315120708-ccb8e960c48f\n"
 	ret += ")\n\n"
@@ -449,9 +449,9 @@ func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 				ifcImport["time"] = ""
 			}
 			if mod.Class[i].Property[j].BaseTyp[0] == "owl.Thing" {
-				strImport["git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl"] =
+				strImport["git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/owl"] =
 					""
-				ifcImport["git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl"] =
+				ifcImport["git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/owl"] =
 					""
 			}
 			if mod.Class[i].Property[j].BaseTyp[0] == "float64" ||
@@ -477,8 +477,8 @@ func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 			}
 		}
 	}
-	manImport["git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl"] = ""
-	serImport["git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf"] = ""
+	manImport["git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/owl"] = ""
+	serImport["git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/rdf"] = ""
 	serImport[mod.Module+"/internal/helper"] = ""
 	serImport["fmt"] = ""
 
@@ -976,9 +976,9 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 		imports += "\t" + class.Imports[i] + "\"" + i + "\"\n"
 	}
 	imports += "\t\"errors\"\n"
-	imports += "\t\"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf\"\n"
+	imports += "\t\"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/rdf\"\n"
 	if !equalParentProps {
-		imports += "\t\"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl\"\n"
+		imports += "\t\"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/owl\"\n"
 	}
 	imports += "\t\"" + mod.Module + "/internal/helper\"\n"
 	imports += "\t\"strings\"\n"

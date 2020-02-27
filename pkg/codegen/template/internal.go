@@ -47,8 +47,8 @@ package template
 // HelperHeader template
 var HelperHeader = "package helper\n\n" +
 	"import (\n" +
-	"\t\"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf\"\n" +
-	"\t\"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl\"\n" +
+	"\t\"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/rdf\"\n" +
+	"\t\"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/owl\"\n" +
 	// "\t\"git-ce.rwth-aachen.de/acs/private/research/ensure/owl/owl.git/pkg/graph\"\n" +
 	"\tvalidator \"gopkg.in/asaskevich/govalidator.v9\"\n" +
 	"\t\"fmt\"\n" +

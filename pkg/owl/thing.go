@@ -45,7 +45,7 @@ THE SOFTWARE.
 package owl
 
 import (
-	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf"
+	"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/rdf"
 )
 
 // Thing is the common base class of all types (owl:Thing)

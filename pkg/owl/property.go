@@ -49,7 +49,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf"
+	"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/rdf"
 )
 
 // extractProperties returns returns all nodes with type owl:DatatypeProperty and owl:ObjectProperty
