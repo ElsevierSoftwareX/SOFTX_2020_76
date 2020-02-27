@@ -50,93 +50,83 @@ import (
 
 	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/codegen"
 	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/owl"
-	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf"
-	// "git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/codegen"
 )
 
 func main() {
-	// testjsonld()
-	//
-	// for i := range triples {
-	// 	fmt.Fprintln(file, triples[i])
-	// }
-	// fmt.Println(triples)
-
 	var err error
-	var on owl.Ontology
-	var file *os.File
-	// on, err = owl.ExtractOntology("https://data.nasa.gov/ontologies/atmonto/general.ttl")
-	on, err = owl.ExtractOntologyLink("https://w3id.org/saref")
-	// on, err = owl.ExtractOntologyLink("https://w3id.org/saref4ener")
-	// file, _ = os.Open("test.ttl")
-	// on, err = owl.ExtractOntology(file)
-	if err != nil {
-		fmt.Println(err)
+	if len(os.Args) != 5 {
+		fmt.Println("Error: Wrong number of command line arguments")
+		return
+	}
+	f := false
+	if os.Args[1] == "-f" {
+		f = true
+	} else if os.Args[1] == "-l" {
+
+	} else {
+		fmt.Println("Error: Wrong ontology location (-f or -l)")
 		return
 	}
 
-	// classes
-	file, err = os.Create("classes.dat")
-	for i := range on.Class {
-		fmt.Fprintln(file, on.Class[i].String())
-	}
-	file.Close()
+	ontLoc := os.Args[2]
+	module := os.Args[3]
+	path := os.Args[4]
 
-	// properties
-	file, err = os.Create("properties.dat")
-	for i := range on.Property {
-		fmt.Fprintln(file, on.Property[i].String())
-	}
-	file.Close()
+	var on owl.Ontology
 
-	// individuals
-	file, err = os.Create("individuals.dat")
-	for i := range on.Individual {
-		fmt.Fprintln(file, on.Individual[i].String())
+	if f {
+		var file *os.File
+		file, err = os.Open(ontLoc)
+		if err != nil {
+			fmt.Println("Error: " + err.Error())
+			return
+		}
+		on, err = owl.ExtractOntology(file)
+		if err != nil {
+			fmt.Println("Error: " + err.Error())
+			return
+		}
+		file.Close()
+	} else {
+		on, err = owl.ExtractOntologyLink(ontLoc)
+		if err != nil {
+			fmt.Println("Error: " + err.Error())
+			return
+		}
 	}
-	file.Close()
+
+	// var file *os.File
+	// // classes
+	// file, err = os.Create("classes.dat")
+	// for i := range on.Class {
+	// 	fmt.Fprintln(file, on.Class[i].String())
+	// }
+	// file.Close()
+
+	// // properties
+	// file, err = os.Create("properties.dat")
+	// for i := range on.Property {
+	// 	fmt.Fprintln(file, on.Property[i].String())
+	// }
+	// file.Close()
+
+	// // individuals
+	// file, err = os.Create("individuals.dat")
+	// for i := range on.Individual {
+	// 	fmt.Fprintln(file, on.Individual[i].String())
+	// }
+	// file.Close()
 
 	var mod []owl.GoModel
-	// mod, err = owl.MapModel(&on, "git-ce.rwth-aachen.de/acs/private/research/agent/saref.git")
-	mod, err = owl.MapModel(&on, "git-ce.rwth-aachen.de/acs/private/research/agent/test.git")
+	mod, err = owl.MapModel(&on, module)
 	if err != nil {
-		fmt.Println(err)
-	}
-
-	err = codegen.GenerateGoCode(mod, "../../test")
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
-func testjsonld() {
-	var err error
-	var file *os.File
-	file, err = os.Open("time.ttl")
-	if err != nil {
-		fmt.Println(err)
-	}
-	var triples []rdf.Triple
-	triples, err = rdf.DecodeTTL(file)
-	if err != nil {
-		fmt.Println(err)
-	}
-	file, err = os.Create("triples.json")
-	err = rdf.EncodeJSONLD(triples, file)
-	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error: " + err.Error())
 		return
 	}
-	file.Close()
 
-	file, err = os.Open("triples.json")
+	err = codegen.GenerateGoCode(mod, path)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error: " + err.Error())
+		return
 	}
-	triples, err = rdf.DecodeJSONLD(file)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(triples)
-	return
 }

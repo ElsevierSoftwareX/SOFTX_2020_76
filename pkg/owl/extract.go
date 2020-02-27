@@ -141,7 +141,7 @@ func parseOntology(input io.Reader) (g rdf.Graph, iri string, description string
 		if g.Edges[i].Pred.String() == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
 			g.Edges[i].Object.Term.String() == "http://www.w3.org/2002/07/owl#Ontology" {
 			iri = g.Edges[i].Subject.Term.String()
-			fmt.Println("\tFound ontology " + iri)
+			fmt.Println("\t\tFound ontology " + iri)
 			isOnt = true
 		} else if g.Edges[i].Pred.String() == "http://purl.org/dc/terms/description" {
 			description = g.Edges[i].Object.Term.String()
@@ -184,7 +184,7 @@ func (on *Ontology) parseImports(gIn *rdf.Graph) (err error) {
 			if err != nil {
 				return
 			}
-			fmt.Println("\tFound import " + gIn.Edges[i].Object.Term.String())
+			fmt.Println("\t\tFound import " + gIn.Edges[i].Object.Term.String())
 			var g rdf.Graph
 			var desc string
 			g, impIRI, desc, _, err = parseOntology(resp.Body)
@@ -205,6 +205,8 @@ func (on *Ontology) parseImports(gIn *rdf.Graph) (err error) {
 			return
 		}
 		err = on.graph.Merge(&gTemp)
+	} else {
+		fmt.Println("\t\tNo imports found")
 	}
 	return
 }
