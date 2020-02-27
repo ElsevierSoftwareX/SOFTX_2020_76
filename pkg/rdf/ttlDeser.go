@@ -111,6 +111,7 @@ func (p *parser) parseRunes() (err error) {
 			if err == io.EOF {
 				err = nil
 			} else {
+				err = errors.New("Error parsing runes: " + err.Error())
 				return
 			}
 			eof = true
@@ -132,7 +133,7 @@ func (p *parser) parseRunes() (err error) {
 			var s int
 			r, s = utf8.DecodeRune(line[pos:])
 			if r == utf8.RuneError {
-				err = errors.New("Rune error")
+				err = errors.New("Error parsing runes: Rune error")
 			}
 			if pos == 0 && r == '#' {
 				break
@@ -182,7 +183,7 @@ func (p *parser) parseStatement() (err error) {
 // the specified position
 func (p *parser) parseDirective(pos int) (length int, err error) {
 	if len(p.runes) <= pos {
-		err = errors.New("Invalid directive " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of directive")
 		return
 	}
 	switch p.runes[pos] {
@@ -205,7 +206,7 @@ func (p *parser) parseDirective(pos int) (length int, err error) {
 			length += tempLength
 			p.prefix[prefix] = iri
 		} else {
-			err = errors.New("Invalid directive " + string(p.runes[pos]) + strconv.Itoa(pos))
+			err = errors.New("wrong prefix")
 			return
 		}
 	case 'b':
@@ -221,7 +222,7 @@ func (p *parser) parseDirective(pos int) (length int, err error) {
 			length += tempLength
 			p.base = iri
 		} else {
-			err = errors.New("Invalid directive " + string(p.runes[pos]) + strconv.Itoa(pos))
+			err = errors.New("wrong base")
 			return
 		}
 	case 'P':
@@ -243,7 +244,7 @@ func (p *parser) parseDirective(pos int) (length int, err error) {
 			length += tempLength
 			p.prefix[prefix] = iri
 		} else {
-			err = errors.New("Invalid directive " + string(p.runes[pos]) + strconv.Itoa(pos))
+			err = errors.New("wrong PREFIX")
 			return
 		}
 	case 'B':
@@ -259,11 +260,11 @@ func (p *parser) parseDirective(pos int) (length int, err error) {
 			length += tempLength
 			p.base = iri
 		} else {
-			err = errors.New("Invalid directive " + string(p.runes[pos]) + strconv.Itoa(pos))
+			err = errors.New("wrong BASE")
 			return
 		}
 	default:
-		err = errors.New("Invalid directive " + string(p.runes[pos]) + strconv.Itoa(pos))
+		err = errors.New("Invalid directive " + string(p.runes[pos]))
 		return
 	}
 	// consumer dot
@@ -281,7 +282,7 @@ func (p *parser) parseDirective(pos int) (length int, err error) {
 // parsePrefix parses one prefix beginning from the specified position
 func (p *parser) parsePrefix(pos int) (prefix string, length int, err error) {
 	if len(p.runes) <= pos {
-		err = errors.New("Prefix error " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of prefix")
 	}
 	prefix, length, err = p.parseUntil(pos, ':')
 	length++
@@ -292,7 +293,7 @@ func (p *parser) parsePrefix(pos int) (prefix string, length int, err error) {
 // p.triples
 func (p *parser) parseTriples(pos int) (length int, err error) {
 	if len(p.runes) <= pos {
-		err = errors.New("Invalid triples " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of triples")
 		return
 	}
 	var trip Triple
@@ -328,7 +329,7 @@ func (p *parser) parseTriples(pos int) (length int, err error) {
 	if p.isEqual(pos+length, ".") {
 		length++
 	} else {
-		err = errors.New("missing dot at end of triples with subject " + trip.Sub.String() + string(p.runes[pos+length-1]))
+		err = errors.New("missing dot at end of triples with subject " + trip.Sub.String())
 		return
 	}
 	length += p.consumeWS(pos + length)
@@ -339,7 +340,7 @@ func (p *parser) parseTriples(pos int) (length int, err error) {
 // parseSubject parses the subject (iri | BlankNode | collection) of a triple
 func (p *parser) parseSubject(pos int) (subj Subject, length int, err error) {
 	if len(p.runes) <= pos+1 {
-		err = errors.New("Invalid subject " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of subject")
 		return
 	}
 	if p.runes[pos] == '_' && p.runes[pos+1] == ':' {
@@ -357,7 +358,7 @@ func (p *parser) parseSubject(pos int) (subj Subject, length int, err error) {
 // parsePredicateObjectList parses a predicateObjectList (verb objectList (';' (verb objectList)?)*)
 func (p *parser) parsePredicateObjectList(pos int) (list []predObjList, length int, err error) {
 	if len(p.runes) <= pos {
-		err = errors.New("Invalid predicate object list " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of predicate object list")
 		return
 	}
 	length = 0
@@ -397,7 +398,7 @@ func (p *parser) parsePredicateObjectList(pos int) (list []predObjList, length i
 // parsePredicate parses the next predicate
 func (p *parser) parsePredicate(pos int) (pred Predicate, length int, err error) {
 	if len(p.runes) <= pos {
-		err = errors.New("Invalid predicate " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of predicate")
 		return
 	}
 	var temp string
@@ -417,7 +418,7 @@ func (p *parser) parsePredicate(pos int) (pred Predicate, length int, err error)
 // parseObjectList parses an objectList (object (',' object)*)
 func (p *parser) parseObjectList(pos int) (obj []Object, length int, err error) {
 	if len(p.runes) <= pos {
-		err = errors.New("Invalid object list " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of object list")
 		return
 	}
 	for {
@@ -442,7 +443,7 @@ func (p *parser) parseObjectList(pos int) (obj []Object, length int, err error) 
 // parseObject parses one object (iri | BlankNode | collection | blankNodePropertyList | literal)
 func (p *parser) parseObject(pos int) (obj Object, length int, err error) {
 	if len(p.runes) <= pos {
-		err = errors.New("Invalid object " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of object")
 		return
 	}
 	if p.runes[pos] == '_' && p.runes[pos+1] == ':' {
@@ -466,7 +467,7 @@ func (p *parser) parseObject(pos int) (obj Object, length int, err error) {
 // parseIRI parses the next iri (IRIRef | prefixedName)
 func (p *parser) parseIRI(pos int) (iri IRI, length int, err error) {
 	if len(p.runes) <= pos {
-		err = errors.New("IRI error " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of iri")
 		return
 	}
 	var i string
@@ -485,11 +486,11 @@ func (p *parser) parseIRI(pos int) (iri IRI, length int, err error) {
 // parseIRI parses IRIRef (<iri>)
 func (p *parser) parseIRIRef(pos int) (iri string, length int, err error) {
 	if len(p.runes) <= pos {
-		err = errors.New("IRI error " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of iri")
 		return
 	}
 	if p.runes[pos] != '<' {
-		err = errors.New("No IRI: " + string(p.runes[pos]) + strconv.Itoa(pos))
+		err = errors.New("No IRI; missing <")
 		return
 	}
 	iri, length, err = p.parseUntil(pos+1, '>')
@@ -500,7 +501,7 @@ func (p *parser) parseIRIRef(pos int) (iri string, length int, err error) {
 // parsePrefixedName parses prefixed name (prefix:name)
 func (p *parser) parsePrefixedName(pos int) (iri string, length int, err error) {
 	if len(p.runes) <= pos {
-		err = errors.New("IRI error " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of iri")
 		return
 	}
 	var prefix string
@@ -510,7 +511,7 @@ func (p *parser) parsePrefixedName(pos int) (iri string, length int, err error) 
 	}
 	ok := false
 	if iri, ok = p.prefix[prefix]; !ok {
-		err = errors.New("No such prefix " + prefix)
+		err = errors.New("no such prefix " + prefix)
 	}
 	var name string
 	var tempLength int
@@ -533,7 +534,7 @@ func (p *parser) parsePrefixedName(pos int) (iri string, length int, err error) 
 // parseLiteral parses a literal (RDFLiteral | NumericLiteral | BooleanLiteral)
 func (p *parser) parseLiteral(pos int) (lit Literal, length int, err error) {
 	if len(p.runes) <= pos {
-		err = errors.New("Literal error " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of literal")
 		return
 	}
 	if p.runes[pos] == '"' || p.runes[pos] == '\'' {
@@ -549,7 +550,7 @@ func (p *parser) parseLiteral(pos int) (lit Literal, length int, err error) {
 // parseRDFLiteral parses a rdf literal (String (LANGTAG | '^^' iri))
 func (p *parser) parseRDFLiteral(pos int) (lit Literal, length int, err error) {
 	if len(p.runes) <= pos+1 {
-		err = errors.New("Literal error " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of literal")
 		return
 	}
 	if p.runes[pos] == '"' {
@@ -569,7 +570,7 @@ func (p *parser) parseRDFLiteral(pos int) (lit Literal, length int, err error) {
 			length += 2
 		}
 	} else {
-		err = errors.New("No rdf literal " + strconv.Itoa(pos))
+		err = errors.New("no rdf literal; missing quotes")
 	}
 	if err != nil {
 		return
@@ -613,7 +614,7 @@ func (p *parser) parseRDFLiteral(pos int) (lit Literal, length int, err error) {
 // parseBooleanLiteral parses a boolean literal
 func (p *parser) parseBooleanLiteral(pos int) (lit Literal, length int, err error) {
 	if len(p.runes) <= pos {
-		err = errors.New("Literal error " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of boolean literal")
 		return
 	}
 	if p.isEqual(pos, "true") {
@@ -623,7 +624,7 @@ func (p *parser) parseBooleanLiteral(pos int) (lit Literal, length int, err erro
 		lit = Literal{str: "false", value: false}
 		length = 5
 	} else {
-		err = errors.New("No boolean literal " + strconv.Itoa(pos))
+		err = errors.New("no boolean literal")
 	}
 	return
 }
@@ -631,7 +632,7 @@ func (p *parser) parseBooleanLiteral(pos int) (lit Literal, length int, err erro
 // parseNumericLiteral parses a numeric literal
 func (p *parser) parseNumericLiteral(pos int) (lit Literal, length int, err error) {
 	if len(p.runes) <= pos {
-		err = errors.New("Literal error " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of numerical literl")
 		return
 	}
 	// get length of literal
@@ -756,11 +757,11 @@ func (p *parser) parseNumericLiteral(pos int) (lit Literal, length int, err erro
 // parseBlankNode parses a blank node
 func (p *parser) parseBlankNode(pos int) (blank BlankNode, length int, err error) {
 	if len(p.runes) <= pos+1 {
-		err = errors.New("BlankNode error " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of blank node")
 		return
 	}
 	if p.runes[pos] != '_' || p.runes[pos+1] != ':' {
-		err = errors.New("No BlankNode " + strconv.Itoa(pos))
+		err = errors.New("no blank node")
 		return
 	}
 	var blankName string
@@ -781,12 +782,12 @@ func (p *parser) parseBlankNode(pos int) (blank BlankNode, length int, err error
 // parseCollection parses a collection ('(' object* ')')
 func (p *parser) parseCollection(pos int) (blank BlankNode, length int, err error) {
 	if len(p.runes) <= pos+1 {
-		err = errors.New("Collection error " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of collection")
 		return
 	}
 	blank = p.blankNode()
 	if p.runes[pos] != '(' {
-		err = errors.New("No Collection " + strconv.Itoa(pos))
+		err = errors.New("no collection; missing (")
 		return
 	}
 	length = p.consumeWS(pos + 1)
@@ -824,11 +825,11 @@ func (p *parser) parseCollection(pos int) (blank BlankNode, length int, err erro
 // parseBlankNodePropertyList parses a blankNodePropertyList ('[' predicateObjectList ']')
 func (p *parser) parseBlankNodePropertyList(pos int) (blank BlankNode, length int, err error) {
 	if len(p.runes) <= pos+1 {
-		err = errors.New("BlankNodePropertyList error " + strconv.Itoa(pos))
+		err = errors.New("reached eof before end of blank node property list")
 		return
 	}
 	if p.runes[pos] != '[' {
-		err = errors.New("No BlankNodePropertyList " + strconv.Itoa(pos))
+		err = errors.New("no BlankNodePropertyList; missing [")
 		return
 	}
 	length = p.consumeWS(pos + 1)
@@ -854,7 +855,7 @@ func (p *parser) parseBlankNodePropertyList(pos int) (blank BlankNode, length in
 		}
 	}
 	if p.runes[pos+length] != ']' {
-		err = errors.New("BlankNodePropertyList error " + strconv.Itoa(pos))
+		err = errors.New("no BlankNodePropertyList; missing ]")
 		return
 	}
 	length++
@@ -925,7 +926,7 @@ func (p *parser) parseUntil(pos int, delim rune) (res string, length int, err er
 	var r []rune
 	for {
 		if len(p.runes) <= pos+length {
-			err = errors.New("No delimiter")
+			err = errors.New("reached eof before delimiter")
 			return
 		}
 		if p.runes[pos+length] == delim && p.runes[pos+length-1] != '\\' {

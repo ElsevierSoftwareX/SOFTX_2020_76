@@ -54,6 +54,7 @@ import (
 
 // extractClasses extracts all classes from a graph and fills them with basic information
 func extractClasses(g *rdf.Graph) (classes map[string]*Class, err error) {
+	fmt.Println("\tExtract classes")
 	classes = make(map[string]*Class)
 	// detrmine all classes
 	for i := range g.Nodes {
@@ -89,6 +90,7 @@ func extractClasses(g *rdf.Graph) (classes map[string]*Class, err error) {
 
 // postProcessClasses fills parents, children and restrictions of classes
 func (on *Ontology) postProcessClasses() (err error) {
+	fmt.Println("\tPostprocess classes")
 	for i := range on.Class {
 		err = on.Class[i].extractInheritance(on)
 		if err != nil {
@@ -170,7 +172,7 @@ func (class *Class) extractRestrictions(on *Ontology) (err error) {
 						return
 					}
 					if rest.Property == nil {
-						err = errors.New("invalid restrition: " + class.Name)
+						err = errors.New("invalid restriction: " + class.Name)
 						return
 					}
 					restExist := false
@@ -249,7 +251,7 @@ func (rest *Restriction) extractValueConstraint(on *Ontology) (err error) {
 			if prop, ok := property[rest.Node.Edge[i].Object.Term.String()]; ok {
 				rest.Property = prop
 			} else {
-				err = errors.New("unknown property" + rest.Node.Edge[i].Object.Term.String())
+				err = errors.New("unknown property " + rest.Node.Edge[i].Object.Term.String())
 				return
 			}
 		} else if rest.Node.Edge[i].Pred.String() == "http://www.w3.org/2002/07/owl#allValuesFrom" {
@@ -276,7 +278,7 @@ func (rest *Restriction) extractCardinalityConstraint(on *Ontology) (err error) 
 			if prop, ok := property[rest.Node.Edge[i].Object.Term.String()]; ok {
 				rest.Property = prop
 			} else {
-				err = errors.New("unknown property" + rest.Node.Edge[i].Object.Term.String())
+				err = errors.New("unknown property " + rest.Node.Edge[i].Object.Term.String())
 				return
 			}
 		} else if rest.Node.Edge[i].Pred.String() ==

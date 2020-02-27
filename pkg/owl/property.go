@@ -46,6 +46,7 @@ package owl
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf"
@@ -53,6 +54,7 @@ import (
 
 // extractProperties returns returns all nodes with type owl:DatatypeProperty and owl:ObjectProperty
 func extractProperties(g *rdf.Graph) (properties map[string]*Property, err error) {
+	fmt.Println("\tExtract properties")
 	properties = make(map[string]*Property)
 	// detrmine all properties
 	for i := range g.Nodes {
@@ -135,6 +137,7 @@ func (prop *Property) extractPropertyCharacteristics() (err error) {
 
 // postProcessProperties extracts inverseOf, domain and subPropertyOf
 func (on *Ontology) postProcessProperties() (err error) {
+	fmt.Println("\tPostprocess properties")
 	for i := range on.Property {
 		propNode := on.Property[i].Node
 		for j := range propNode.Edge {
@@ -175,6 +178,7 @@ func (on *Ontology) postProcessProperties() (err error) {
 
 // applyPropertyDomain adds restrictions to classes according to property domains
 func (on *Ontology) addPropertyDomain() (err error) {
+	fmt.Println("\tAdd property domain")
 	for i := range on.Property {
 		for j := range on.Property[i].Domain {
 			rest := Restriction{

@@ -69,6 +69,7 @@ func ExtractOntologyLink(link string) (on Ontology, err error) {
 
 // ExtractOntology extracts all classes, properties, individuals and imports
 func ExtractOntology(input io.Reader) (on Ontology, err error) {
+	fmt.Println("Extract ontology")
 	iri := ""
 	description := ""
 	on.Class = make(map[string]*Class)
@@ -127,21 +128,27 @@ func ExtractOntology(input io.Reader) (on Ontology, err error) {
 // parseOntology parses the specified ontology
 func parseOntology(input io.Reader) (g rdf.Graph, iri string, description string, content []byte,
 	err error) {
-	fmt.Println("Read TTL input")
+	fmt.Println("\tParse ttl file")
 	g, err = readTTL(input)
 	if err != nil {
-		err = errors.New("Cannot parse ontology: " + err.Error())
+		err = errors.New("cannot parse ontology: " + err.Error())
 		return
 	}
 
 	// get ontology iri
+	isOnt := false
 	for i := range g.Edges {
 		if g.Edges[i].Pred.String() == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
 			g.Edges[i].Object.Term.String() == "http://www.w3.org/2002/07/owl#Ontology" {
 			iri = g.Edges[i].Subject.Term.String()
+			fmt.Println("\tFound ontology " + iri)
+			isOnt = true
 		} else if g.Edges[i].Pred.String() == "http://purl.org/dc/terms/description" {
 			description = g.Edges[i].Object.Term.String()
 		}
+	}
+	if !isOnt {
+		err = errors.New("no ontology")
 	}
 	return
 }
@@ -160,6 +167,7 @@ func readTTL(input io.Reader) (g rdf.Graph, err error) {
 
 // parseImports parses all imports and adds imports to ontologies
 func (on *Ontology) parseImports(gIn *rdf.Graph) (err error) {
+	fmt.Println("\tLooking for imports")
 	var gTemp rdf.Graph
 	gTemp.Nodes = make(map[string]*rdf.Node)
 	hasImport := false
@@ -176,12 +184,11 @@ func (on *Ontology) parseImports(gIn *rdf.Graph) (err error) {
 			if err != nil {
 				return
 			}
-			fmt.Println("Parse Imported Ontology " + gIn.Edges[i].Object.Term.String())
+			fmt.Println("\tFound import " + gIn.Edges[i].Object.Term.String())
 			var g rdf.Graph
 			var desc string
 			g, impIRI, desc, _, err = parseOntology(resp.Body)
 			if err != nil {
-				err = errors.New("Error parsing import " + gIn.Edges[i].Object.Term.String())
 				return
 			}
 			resp.Body.Close()
@@ -193,8 +200,11 @@ func (on *Ontology) parseImports(gIn *rdf.Graph) (err error) {
 		}
 	}
 	if hasImport {
-		on.parseImports(&gTemp)
-		on.graph.Merge(&gTemp)
+		err = on.parseImports(&gTemp)
+		if err != nil {
+			return
+		}
+		err = on.graph.Merge(&gTemp)
 	}
 	return
 }

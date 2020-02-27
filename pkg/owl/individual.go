@@ -46,6 +46,7 @@ package owl
 
 import (
 	"errors"
+	"fmt"
 
 	"git-ce.rwth-aachen.de/acs/private/research/agent/owl2go.git/pkg/rdf"
 )
@@ -53,6 +54,7 @@ import (
 // extractIndividuals returns all nodes with type http://www.w3.org/2002/07/owl#NamedIndividual
 func extractIndividuals(g *rdf.Graph,
 	classes map[string]*Class) (individuals map[string]*Individual, err error) {
+	fmt.Println("\tExtract individuals")
 	individuals = make(map[string]*Individual)
 	// detrmine all individuals
 	for i := range g.Nodes {

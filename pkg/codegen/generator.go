@@ -57,6 +57,7 @@ import (
 
 // GenerateGoCode generates the go package for a model
 func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
+	fmt.Println("Generate Go Code")
 	if len(mod) < 1 {
 		return
 	}
@@ -107,6 +108,7 @@ func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 	file.Close()
 
 	for i := range mod {
+		fmt.Println("\tGenerate package " + mod[i].Name)
 
 		// model
 		file, err = os.Create(path + "/pkg/" + mod[i].Name + "/model.go")

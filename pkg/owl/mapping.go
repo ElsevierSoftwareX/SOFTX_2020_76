@@ -103,6 +103,7 @@ type GoIndividual struct {
 
 // MapModel extracts the model from an ontology
 func MapModel(ont *Ontology, moduleName string) (mod []GoModel, err error) {
+	fmt.Println("Map ontology to Go model")
 	mod = make([]GoModel, len(ont.Imports), len(ont.Imports))
 	index := 0
 	for i := range ont.Imports {
@@ -142,6 +143,7 @@ func MapModel(ont *Ontology, moduleName string) (mod []GoModel, err error) {
 
 // createGoClasses creates all necessary GoClasses and fills their information if possible
 func (mod *GoModel) createGoClasses(ont *Ontology) (err error) {
+	fmt.Println("\tCreate Go classes for " + mod.Name)
 	mod.Class = make(map[string]GoClass)
 	for i := range ont.Class {
 		var temp GoClass
