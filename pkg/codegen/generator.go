@@ -69,10 +69,10 @@ func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 			return
 		}
 	}
-	err = os.MkdirAll(path+"/docs", os.ModePerm)
-	if err != nil {
-		return
-	}
+	// err = os.MkdirAll(path+"/docs", os.ModePerm)
+	// if err != nil {
+	// 	return
+	// }
 	err = os.MkdirAll(path+"/internal/helper", os.ModePerm)
 	if err != nil {
 		return
@@ -81,13 +81,13 @@ func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 	var file *os.File
 
 	// README
-	file, err = os.Create(path + "/README.md")
-	if err != nil {
-		return
-	}
-	readme := generateReadme(mod[0].Name, mod[0].Description, mod[0].IRI)
-	fmt.Fprintln(file, readme)
-	file.Close()
+	// file, err = os.Create(path + "/README.md")
+	// if err != nil {
+	// 	return
+	// }
+	// readme := generateReadme(mod[0].Name, mod[0].Description, mod[0].IRI)
+	// fmt.Fprintln(file, readme)
+	// file.Close()
 
 	// module
 	file, err = os.Create(path + "/go.mod")
@@ -202,8 +202,7 @@ func generateReadme(ontName string, description string, iri string) (ret string)
 func generateModule(name string) (ret string) {
 	ret = "module " + name + "\n\n"
 	ret += "require (\n"
-	ret += "\tgit.rwth-aachen.de/acs/public/ontology/owl/owl2go v0.0.0-20200213111428-" +
-		"aecaebd2e2e4\n"
+	ret += "\tgit.rwth-aachen.de/acs/public/ontology/owl/owl2go v0.0.0-20200227101928-0a93c903dc76\n"
 	ret += "\tgopkg.in/asaskevich/govalidator.v9 v9.0.0-20180315120708-ccb8e960c48f\n"
 	ret += ")\n\n"
 	ret += "go 1.13"

@@ -4,6 +4,8 @@ OWL2Go is a code generator that takes a OWL ontology and generates a Go package 
 
 ## Mapping
 
+The mapping from OWL to Go follows the following table.
+
 OWL construct | OWL expression (owl:..., rdf(s):...) | Go construct
 --- | ---| ---
 Class | Class A | `interface A`; `struct sA` implements `A`
@@ -35,7 +37,72 @@ go run main.go -l https://w3id.org/saref git.rwth-aachen.de/acs/public/ontology/
 
 ## How to use the generated package
 
-We applied OWL2Go to the [SAREF ontology](https://ontology.tno.nl/saref/). The resulting module can be found [here](https://git.rwth-aachen.de/acs/public/ontology/owl/saref). Please refer to this repository for instructions on how to use generated packages.
+We applied OWL2Go to the [SAREF ontology](https://ontology.tno.nl/saref/). The resulting module can be found [here](https://git.rwth-aachen.de/acs/public/ontology/owl/saref). The usage of the generated package will be explained based on this example.
+
+Import the package:
+
+```Go
+import ("git.rwth-aachen.de/acs/public/ontology/owl/saref/pkg/saref")
+```
+
+To create a new model call the `NewModel()`function.
+
+```Go
+mod := saref.NewModel()
+```
+
+This will automatically create all individuals that are specified in the ontology. For each class defined in the ontology there is one `New` function defined for the `Model` type.
+
+```Go
+dev, err := mod.NewAppliance("http://example.com#dev1")
+if err != nil {
+    return
+}
+```
+
+The `New` method takes the IRI of the object to be created as input. If the IRI already exists within the model, an error is returned. Otherwise the first return variable (`dev`) contains the created object which is of type `saref.Appliance` in the example above. Properties of an object can be manipulated by invoking `Set`, `Add` and `Del` functions:
+
+```Go
+err = dev.SetHasDescription("This is a test device")
+if err != nil {
+    return
+}
+task, err := mod.NewTask("http://example.com#task1")
+if err != nil {
+    return
+}
+err = dev.AddAccomplishes(task)
+if err != nil {
+    return
+}
+```
+
+A list of all objects from a certain type can be obtained by:
+
+```Go
+dev := mod.Device("http://example.com#dev")
+```
+
+This functions returns all objects of type `Device` which start with the prefix `http://example.com#dev`. For deletion of objects from the model a `DeleteObject()` method exists which takes an object as input and deletes the corresponding object as well as all properties which are linked from or to this object.
+
+```Go
+mod.DeleteObject(task)
+```
+
+Instead of creating a blank model, it can also be created from a document which is encoded in Turtle or JSON-LD and compliant to the ontology. The function `NewModelFromTTl` expects an `io.Reader` object as input.
+
+```Go
+file, _ := os.Open("input.ttl")
+mod, err := saref.NewModelFromTTL(file)
+```
+
+The same works for the function `NewModelFromJSONLD`. Existing models can be serialized to either Turtle or JSON-LD by using the `ToTTL` or `ToJSONLD` method of the `Model` object. The methods take an `io.Writer` as argument.
+
+```Go
+file, _ = os.Create("output.json")
+mod.ToJSONLD(file)
+file.Close()
+```
 
 ## Copyright
 
