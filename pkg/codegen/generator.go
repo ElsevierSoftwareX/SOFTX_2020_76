@@ -203,7 +203,7 @@ func generateModule(name string) (ret string) {
 	ret = "module " + name + "\n\n"
 	ret += "require (\n"
 	ret += "\tgit.rwth-aachen.de/acs/public/ontology/owl/owl2go v0.0.0-20200302081207-a47ddaf40a3c\n"
-	ret += "\tgopkg.in/asaskevich/govalidator.v9 v9.0.0-20180315120708-ccb8e960c48f\n"
+	ret += "\tgithub.com/piprate/json-gold v0.3.0\n"
 	ret += ")\n\n"
 	ret += "go 1.13"
 	return
