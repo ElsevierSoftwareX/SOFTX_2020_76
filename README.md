@@ -21,6 +21,12 @@ Individual | type | create individual when creating model
 
 ## How to use OWL2Go
 
+### Prerequisites
+
+The ontology and all its imports must be encoded in Turtle format. The imports must be available through a http request.
+
+### Usage
+
 Go to cmd directory and execute the `main.go` with following arguments:
 
 ```bash
