@@ -126,7 +126,7 @@ func (p *parser) parseRunes() (err error) {
 		// omit new line at end of slice (but only if not last line)
 		stop := len(line) - 1
 		if eof {
-			stop = len(line) - 1
+			stop = len(line)
 		}
 		for pos < stop {
 			var r rune
@@ -141,6 +141,7 @@ func (p *parser) parseRunes() (err error) {
 			if r == '\t' {
 				r = ' '
 			} else if r == '\n' {
+				r = ' '
 				// continue
 			}
 			p.runes = append(p.runes, r)
