@@ -1,0 +1,37 @@
+@prefix test: <https://example.com/test#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <https://example.com/test> .
+<https://example.com/test> rdf:type owl:Ontology .
+test:propa rdf:type owl:ObjectProperty .
+test:propb rdf:type owl:ObjectProperty .
+test:bclass rdf:type owl:Class ;
+    rdfs:subClassOf [ rdf:type owl:Restriction ;
+        owl:onProperty test:propa ;
+        owl:allValuesFrom test:bclass
+        ] ,
+        [ rdf:type owl:Restriction ;
+        owl:onProperty test:propb ;
+        owl:allValuesFrom test:bclass
+        ] .
+test:class0d rdf:type owl:Class ;
+    rdfs:subClassOf test:bclass .
+test:class1d rdf:type owl:Class ;
+    rdfs:subClassOf test:bclass .
+test:class2d rdf:type owl:Class ;
+    rdfs:subClassOf test:bclass .
+test:class3d rdf:type owl:Class ;
+    rdfs:subClassOf test:bclass .
+test:class4d rdf:type owl:Class ;
+    rdfs:subClassOf test:bclass .
+test:class5d rdf:type owl:Class ;
+    rdfs:subClassOf test:bclass .
+test:class6d rdf:type owl:Class ;
+    rdfs:subClassOf test:bclass .
+test:class7d rdf:type owl:Class ;
+    rdfs:subClassOf test:bclass .
+test:class8d rdf:type owl:Class ;
+    rdfs:subClassOf test:bclass .
+test:class9d rdf:type owl:Class ;
+    rdfs:subClassOf test:bclass .
