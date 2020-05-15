@@ -50,6 +50,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 
 	"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/rdf"
@@ -247,8 +248,36 @@ func getUnionValues(node *rdf.Node) (ret []*rdf.Node) {
 // requestOntology requests a ontology via http
 func requestOntology(path string) (resp *http.Response, err error) {
 	client := &http.Client{
-		Timeout: time.Second * 2,
+		Timeout: time.Second * 60,
 	}
-	resp, err = client.Get(path)
+
+	var request *http.Request
+	request, err = http.NewRequest("GET", path, nil)
+	request.Header.Set("Content-Type", "text/turtle")
+	resp, err = client.Do(request)
+
+	if cont, ok := resp.Header["Content-Type"]; ok {
+		for i := range cont {
+			if strings.HasPrefix(cont[i], "text/html") {
+				resp, err = requestOntologyTTL(path)
+				break
+			}
+		}
+	}
+
+	return
+}
+
+// requestOntologyTTL requests a ontology via http
+func requestOntologyTTL(path string) (resp *http.Response, err error) {
+	client := &http.Client{
+		Timeout: time.Second * 60,
+	}
+
+	var request *http.Request
+	request, err = http.NewRequest("GET", path+".ttl", nil)
+	request.Header.Set("Content-Type", "text/turtle")
+	resp, err = client.Do(request)
+
 	return
 }

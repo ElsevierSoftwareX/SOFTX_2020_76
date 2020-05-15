@@ -143,6 +143,8 @@ func (p *parser) parseRunes() (err error) {
 			} else if r == '\n' {
 				r = ' '
 				// continue
+			} else if r == '\r' {
+				r = ' '
 			}
 			p.runes = append(p.runes, r)
 			pos += s

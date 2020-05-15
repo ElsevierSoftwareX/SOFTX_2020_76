@@ -217,6 +217,9 @@ func generateHelper() (ret string) {
 		template.HelperAddBoolPropertyToGraph + template.HelperAddInterfacePropertyToGraph +
 		template.HelperAddDurationPropertyToGraph
 	ret += strings.Replace(strings.Replace(template.HelperAddTimePropertyToGraph,
+		"###timeType###", "Time", -1),
+		"###timeLiteral###", template.LiteralTime, -1)
+	ret += strings.Replace(strings.Replace(template.HelperAddTimePropertyToGraph,
 		"###timeType###", "DateTime", -1),
 		"###timeLiteral###", template.LiteralDateTime, -1)
 	ret += strings.Replace(strings.Replace(template.HelperAddTimePropertyToGraph,
@@ -759,6 +762,9 @@ func generatePropertyManipulator(prop owl.GoProperty) (ret string) {
 		switch prop.Typ[0] {
 		case "time.Time":
 			switch prop.XSDTyp {
+			case "http://www.w3.org/2001/XMLSchema#time":
+				initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###",
+					template.PropInitTime, -1)
 			case "http://www.w3.org/2001/XMLSchema#dateTime":
 				initProp = strings.Replace(template.PropertyInitLiteral, "###PropInit###",
 					template.PropInitDateTime, -1)
@@ -867,6 +873,8 @@ func generatePropertySerializer(prop owl.GoProperty) (ret string) {
 	case "time.Time", "time.Duration":
 		stringProp = template.StringPropTime
 		switch prop.XSDTyp {
+		case "http://www.w3.org/2001/XMLSchema#time":
+			graphProp = template.GraphPropSTime
 		case "http://www.w3.org/2001/XMLSchema#dateTime":
 			graphProp = template.GraphPropSDateTime
 		case "http://www.w3.org/2001/XMLSchema#date":
@@ -1356,6 +1364,8 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 			switch prop.Typ[0] {
 			case "time.Time":
 				switch prop.XSDTyp {
+				case "http://www.w3.org/2001/XMLSchema#time":
+					temp = strings.Replace(temp, "###PropInit###", template.PropTime, -1)
 				case "http://www.w3.org/2001/XMLSchema#dateTime":
 					temp = strings.Replace(temp, "###PropInit###", template.PropDateTime, -1)
 				case "http://www.w3.org/2001/XMLSchema#date":

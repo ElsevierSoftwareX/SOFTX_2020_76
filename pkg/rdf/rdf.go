@@ -67,6 +67,8 @@ var (
 	// XsdDouble float
 	XsdDouble = "http://www.w3.org/2001/XMLSchema#double"
 
+	// XsdTime time
+	XsdTime = "http://www.w3.org/2001/XMLSchema#time"
 	// XsdDate time
 	XsdDate = "http://www.w3.org/2001/XMLSchema#date"
 	// XsdDateTime time
@@ -183,6 +185,8 @@ func NewLiteral(val interface{}, typ string) (lit Literal, err error) {
 		lit = Literal{str: t, typeIRI: XsdString, value: t}
 	case time.Time:
 		switch typ {
+		case XsdTime:
+			lit = Literal{str: t.Format("15:04:05Z07:00"), typeIRI: XsdDateTime, value: t}
 		case XsdDateTime:
 			lit = Literal{str: t.Format(time.RFC3339), typeIRI: XsdDateTime, value: t}
 		case XsdDateTimeStamp:
@@ -218,6 +222,8 @@ func NewLiteral(val interface{}, typ string) (lit Literal, err error) {
 // ToTime converts a xsd literal to time.Time if possible
 func (lit Literal) ToTime() (t time.Time, err error) {
 	switch lit.typeIRI {
+	case XsdTime:
+		t, err = time.Parse("15:04:05Z07:00", lit.str)
 	case XsdDateTime:
 		t, err = time.Parse(time.RFC3339, lit.str)
 	case XsdDateTimeStamp:

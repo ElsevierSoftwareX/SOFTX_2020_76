@@ -59,17 +59,31 @@ import (
 
 func main() {
 	var err error
-	err = generateInputFiles()
-	if err != nil {
-		fmt.Println(err)
-		return
+	// err = generateInputFiles()
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+
+	var dExt, dMap, dGen time.Duration
+
+	for i := 0; i < 5; i++ {
+		var dtExt, dtMap, dtGen time.Duration
+		dtExt, dtMap, dtGen, err = measurePerformance(10000)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		dExt += dtExt
+		dMap += dtMap
+		dGen += dtGen
 	}
 
-	err = measurePerformance(1000)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	dExt = dExt / 5
+	dMap = dMap / 5
+	dGen = dGen / 5
+
+	fmt.Println("Extraction: ", dExt, "Mapping: ", dMap, "Generation: ", dGen)
 
 }
 
@@ -122,10 +136,26 @@ func generateInputFiles() (err error) {
 		fmt.Println(err)
 		return
 	}
+
+	file, err = os.Create("input10000.ttl")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	err = input.GenerateInputFile(10000, file)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	err = file.Close()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	return
 }
 
-func measurePerformance(size int) (err error) {
+func measurePerformance(size int) (dExt, dMap, dGen time.Duration, err error) {
 	var file *os.File
 
 	var on owl.Ontology
@@ -142,7 +172,8 @@ func measurePerformance(size int) (err error) {
 		return
 	}
 	file.Close()
-	fmt.Println("Time for extraction: ", time.Since(tstart))
+	dExt = time.Since(tstart)
+	// fmt.Println("Time for extraction: ", dExt)
 
 	tstart = time.Now()
 	var mod []owl.GoModel
@@ -151,7 +182,8 @@ func measurePerformance(size int) (err error) {
 		fmt.Println("Error: " + err.Error())
 		return
 	}
-	fmt.Println("Time for mapping: ", time.Since(tstart))
+	dMap = time.Since(tstart)
+	// fmt.Println("Time for mapping: ", dMap)
 
 	tstart = time.Now()
 	err = codegen.GenerateGoCode(mod, "output"+strconv.Itoa(size))
@@ -159,6 +191,7 @@ func measurePerformance(size int) (err error) {
 		fmt.Println("Error: " + err.Error())
 		return
 	}
-	fmt.Println("Time for generation: ", time.Since(tstart))
+	dGen = time.Since(tstart)
+	// fmt.Println("Time for generation: ", dGen)
 	return
 }

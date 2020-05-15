@@ -124,10 +124,10 @@ var HelperAddStringPropertyToGraph = "// AddStringPropertyToGraph adds the speci
 var HelperAddIntPropertyToGraph = "// AddIntPropertyToGraph adds the specified property to the graph\n" +
 	"func AddIntPropertyToGraph(g *rdf.Graph, propIRI string, subjNode *rdf.Node, obj int) {\n" +
 	"\tlit, _ := rdf.NewLiteral(obj, \"\")\n" +
-	"\tobjNode, ok := g.Nodes[fmt.Sprintf(\"%d\", obj)]\n" +
+	"\tobjNode, ok := g.Nodes[fmt.Sprintf(\"%v\", obj)]\n" +
 	"\tif !ok {\n" +
 	"\t\tobjNode = &rdf.Node{Term: lit}\n" +
-	"\t\tg.Nodes[fmt.Sprintf(\"%d\", obj)] = objNode\n" +
+	"\t\tg.Nodes[fmt.Sprintf(\"%v\", obj)] = objNode\n" +
 	"\t}\n" +
 	HelperAddPropertyToGraph +
 	"\treturn\n" +
@@ -137,10 +137,10 @@ var HelperAddIntPropertyToGraph = "// AddIntPropertyToGraph adds the specified p
 var HelperAddFloatPropertyToGraph = "// AddFloatPropertyToGraph adds the specified property to the graph\n" +
 	"func AddFloatPropertyToGraph(g *rdf.Graph, propIRI string, subjNode *rdf.Node, obj float64) {\n" +
 	"\tlit, _ := rdf.NewLiteral(obj, \"\")\n" +
-	"\tobjNode, ok := g.Nodes[fmt.Sprintf(\"%f\", obj)]\n" +
+	"\tobjNode, ok := g.Nodes[fmt.Sprintf(\"%v\", obj)]\n" +
 	"\tif !ok {\n" +
 	"\t\tobjNode = &rdf.Node{Term: lit}\n" +
-	"\t\tg.Nodes[fmt.Sprintf(\"%f\", obj)] = objNode\n" +
+	"\t\tg.Nodes[fmt.Sprintf(\"%v\", obj)] = objNode\n" +
 	"\t}\n" +
 	HelperAddPropertyToGraph +
 	"\treturn\n" +
@@ -185,6 +185,9 @@ var HelperAddTimePropertyToGraph = "// Add###timeType###PropertyToGraph adds the
 	"\t}\n" +
 	HelperAddPropertyToGraph +
 	"}\n\n"
+
+// LiteralTime template
+var LiteralTime = "\tlit, _ := rdf.NewLiteral(obj, rdf.XsdTime)\n"
 
 // LiteralDateTime template
 var LiteralDateTime = "\tlit, _ := rdf.NewLiteral(obj, rdf.XsdDateTime)\n"

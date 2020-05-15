@@ -166,7 +166,7 @@ func (mod *GoModel) extractClass(class *Class, ont *Ontology) (goClass GoClass, 
 		//err = errors.New("wrong iri: " + class.Name)
 		return
 	}
-	goClass.Name = strings.TrimPrefix(class.Name, mod.IRI+"#")
+	goClass.Name = strings.Title(strings.TrimPrefix(class.Name, mod.IRI+"#"))
 	goClass.IRI = class.Name
 
 	// get comment
@@ -451,6 +451,8 @@ func (mod *GoModel) extractIndividual(individual *Individual,
 // mapLiteralType maps the literal type to a go datatype
 func mapLiteralType(literal string) (goType string, err error) {
 	switch literal {
+	case "http://www.w3.org/2001/XMLSchema#time":
+		goType = "time.Time"
 	case "http://www.w3.org/2001/XMLSchema#dateTime":
 		goType = "time.Time"
 	case "http://www.w3.org/2001/XMLSchema#date":

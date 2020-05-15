@@ -376,6 +376,11 @@ var PropClassImport = "\t\tif temp := res.model.###capImportName######propBaseTy
 	"\t\t\t}\n" +
 	"\t\t}\n"
 
+// PropTime template
+var PropTime = "\t\tif obj, err := time.Parse(\"15:04:05Z07:00\", pred.Object.Term.String()); err == nil {\n" +
+	"\t\t\tres.###Multiplicity######propCapital###(obj)\n" +
+	"\t\t}\n"
+
 // PropDate template
 var PropDate = "\t\tif obj, err := time.Parse(\"2006-01-02Z07:00\", pred.Object.Term.String()); err == nil {\n" +
 	"\t\t\tres.###Multiplicity######propCapital###(obj)\n" +

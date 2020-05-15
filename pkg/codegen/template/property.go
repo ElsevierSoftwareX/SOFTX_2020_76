@@ -129,6 +129,11 @@ var PropInitClassImport = "\tif temp := model.###capImportName######propBaseType
 	"\t\t}\n" +
 	"\t}\n"
 
+// PropInitTime template
+var PropInitTime = "\tif obj, err := time.Parse(\"15:04:05Z07:00\", in); err == nil {\n" +
+	"\t\tres.###Multiplicity######propCapital###(obj)\n" +
+	"\t}\n"
+
 // PropInitDate template
 var PropInitDate = "\tif obj, err := time.Parse(\"2006-01-02Z07:00\", in); err == nil {\n" +
 	"\t\tres.###Multiplicity######propCapital###(obj)\n" +
@@ -408,6 +413,9 @@ var GraphPropBool = "###indent###\thelper.AddBoolPropertyToGraph(g, \"###propIRI
 
 // GraphPropInterface template
 var GraphPropInterface = "###indent###\thelper.AddInterfacePropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+
+// GraphPropSTime template
+var GraphPropSTime = "###indent###\thelper.AddTimePropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
 // GraphPropSDateTime template
 var GraphPropSDateTime = "###indent###\thelper.AddDateTimePropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
