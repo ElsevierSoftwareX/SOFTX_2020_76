@@ -82,6 +82,19 @@ var HelperAddToGraph = "// AddObjectToGraph adds the specified object to the gra
 	"\tg.Edges = append(g.Edges, pred)\n" +
 	"\tnode.Edge = append(node.Edge, pred)\n" +
 	"\ttyp.InverseEdge = append(typ.InverseEdge, pred)\n" +
+	"\tvar nInd *rdf.Node\n" +
+	"\tif nInd, ok = g.Nodes[\"http://www.w3.org/2002/07/owl#NamedIndividual\"]; !ok {\n" +
+	"\t\tnInd = &rdf.Node{Term: rdf.NewIRI(\"http://www.w3.org/2002/07/owl#NamedIndividual\")}\n" +
+	"\t\tg.Nodes[\"http://www.w3.org/2002/07/owl#NamedIndividual\"] = nInd\n" +
+	"\t}\n" +
+	"\tpred = &rdf.Edge{\n" +
+	"\t\tPred:    rdf.NewIRI(\"http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"),\n" +
+	"\t\tSubject: node,\n" +
+	"\t\tObject:  nInd,\n" +
+	"\t}\n" +
+	"\tg.Edges = append(g.Edges, pred)\n" +
+	"\tnode.Edge = append(node.Edge, pred)\n" +
+	"\tnInd.InverseEdge = append(nInd.InverseEdge, pred)\n" +
 	"\treturn\n" +
 	"}\n\n"
 
