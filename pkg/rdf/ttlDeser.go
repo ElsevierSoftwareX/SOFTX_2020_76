@@ -87,6 +87,8 @@ func DecodeTTL(input io.Reader) (trip []Triple, err error) {
 	if err != nil {
 		return
 	}
+	// remove whitepaces at beginning
+	p.posStatement = p.consumeWS(0)
 	for {
 		err = p.parseStatement()
 		if err != nil {
@@ -559,6 +561,17 @@ func (p *parser) parseRDFLiteral(pos int) (lit Literal, length int, err error) {
 	if p.runes[pos] == '"' {
 		if p.runes[pos+1] == '"' {
 			lit.str, length, err = p.parseUntil(pos+3, '"')
+			for {
+				if p.runes[pos+3+length+1] != '"' {
+					var tempLength int
+					var tempStr string
+					tempStr, tempLength, err = p.parseUntil(pos+3+length+1, '"')
+					lit.str += "\"" + tempStr
+					length += 1 + tempLength
+					continue
+				}
+				break
+			}
 			length += 6
 		} else {
 			lit.str, length, err = p.parseUntil(pos+1, '"')
@@ -567,6 +580,17 @@ func (p *parser) parseRDFLiteral(pos int) (lit Literal, length int, err error) {
 	} else if p.runes[pos] != '\'' {
 		if p.runes[pos+1] == '\'' {
 			lit.str, length, err = p.parseUntil(pos+3, '\'')
+			for {
+				if p.runes[pos+3+length+1] != '\'' {
+					var tempLength int
+					var tempStr string
+					tempStr, tempLength, err = p.parseUntil(pos+3+length+1, '\'')
+					lit.str += "'" + tempStr
+					length += 1 + tempLength
+					continue
+				}
+				break
+			}
 			length += 6
 		} else {
 			lit.str, length, err = p.parseUntil(pos+1, '\'')
@@ -642,10 +666,17 @@ func (p *parser) parseNumericLiteral(pos int) (lit Literal, length int, err erro
 	var value float64
 	tempLength := 0
 	lit.str, length, err = p.parseUntil(pos, ' ')
-
 	if err != nil {
 		return
 	}
+	// could be object list
+	if p.runes[pos+length-1] == ',' {
+		lit.str, length, err = p.parseUntil(pos, ',')
+		if err != nil {
+			return
+		}
+	}
+
 	// + or -
 	if p.runes[pos] == '-' {
 		value = -1

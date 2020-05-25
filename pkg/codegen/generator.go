@@ -202,7 +202,7 @@ func generateReadme(ontName string, description string, iri string) (ret string)
 func generateModule(name string) (ret string) {
 	ret = "module " + name + "\n\n"
 	ret += "require (\n"
-	ret += "\tgit.rwth-aachen.de/acs/public/ontology/owl/owl2go v0.0.0-20200302081207-a47ddaf40a3c\n"
+	ret += "\tgit.rwth-aachen.de/acs/public/ontology/owl/owl2go v1.0.1-0.20200519095848-1957790a97ad\n"
 	ret += "\tgithub.com/piprate/json-gold v0.3.0\n"
 	ret += ")\n\n"
 	ret += "go 1.13"
@@ -469,6 +469,13 @@ func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 				mod.Class[i].Property[j].BaseTyp[0] != "time.Duration" &&
 				mod.Class[i].Property[j].BaseTyp[0] != "owl.Thing" {
 				ifcImport[mod.Module+"/pkg/"+strings.TrimPrefix(temp[0], "im")] = temp[0] + " "
+				manImport[mod.Module+"/pkg/"+strings.TrimPrefix(temp[0], "im")] = temp[0] + " "
+			}
+			temp = strings.Split(mod.Class[i].Property[j].Typ[0], ".")
+			if len(temp) == 2 && mod.Class[i].Property[j].Typ[0] != "time.Time" &&
+				mod.Class[i].Property[j].Typ[0] != "time.Duration" &&
+				mod.Class[i].Property[j].Typ[0] != "owl.Thing" {
+				strImport[mod.Module+"/pkg/"+strings.TrimPrefix(temp[0], "im")] = temp[0] + " "
 			}
 		}
 		for j := range mod.Class[i].Imports {
