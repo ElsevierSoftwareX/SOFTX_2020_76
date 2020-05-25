@@ -87,6 +87,7 @@ func ExtractOntology(input io.Reader) (on Ontology, err error) {
 	}
 
 	on.graph = &g
+	on.IRI = iri
 	on.Description[iri] = description
 	on.Imports[iri] = []string{}
 

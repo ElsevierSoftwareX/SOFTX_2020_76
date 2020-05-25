@@ -417,7 +417,7 @@ var PropGYearMonth = "\t\tif obj, err := time.Parse(\"2006-01\", pred.Object.Ter
 	"\t\t}\n"
 
 // PropDuration template
-var PropDuration = "\t\tif obj, err := helper.ParseXsdDuration(pred.Object.Term.String()); err == nil {\n" +
+var PropDuration = "\t\tif obj, err := owl.ParseXsdDuration(pred.Object.Term.String()); err == nil {\n" +
 	"\t\t\tres.###Multiplicity######propCapital###(obj)\n" +
 	"\t\t}\n"
 
@@ -442,7 +442,7 @@ var PropString = "\t\tres.###Multiplicity######propCapital###()\n"
 // ClassToGraph template
 var ClassToGraph = "// ToGraph creates a new owl graph node and adds it to the graph\n" +
 	"func (res *s###className###) ToGraph(g *rdf.Graph) {\n" +
-	"\tnode := helper.AddObjectToGraph(g, \"###classIRI###\", res)\n" +
+	"\tnode := owl.AddObjectToGraph(g, \"###classIRI###\", res)\n" +
 	"\tres.propsToGraph(node, g)\n" +
 	"\treturn\n" +
 	"}\n\n"
@@ -460,7 +460,7 @@ var ToGraphProp = "\tres.###propLongName###.toGraph(node, g)\n"
 // ClassToGraphNoProp template
 var ClassToGraphNoProp = "// ToGraph creates a new owl graph node and adds it to the graph\n" +
 	"func (res *s###className###) ToGraph(g *rdf.Graph) {\n" +
-	"\thelper.AddObjectToGraph(g, \"###classIRI###\", res)\n" +
+	"\towl.AddObjectToGraph(g, \"###classIRI###\", res)\n" +
 	"\treturn\n" +
 	"}\n\n"
 

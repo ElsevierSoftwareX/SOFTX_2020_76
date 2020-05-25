@@ -52,7 +52,6 @@ var ModelHeader = "package ###pkgName###\n\n" +
 	"\t\"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/rdf\"\n" +
 	"\t\"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/owl\"\n" +
 	"\t\"io\"\n" +
-	"###imports###" +
 	")\n\n"
 
 // ModelStruct template
@@ -60,7 +59,6 @@ var ModelStruct = "// Model holds all objects\n" +
 	"type Model struct {\n" +
 	"\tmThing map[string]owl.Thing\n" +
 	"###objectMaps###" +
-	"###importModels###" +
 	"}\n\n"
 
 // StructMap template
@@ -75,7 +73,6 @@ var ModelNew = "// NewModel creates a new model and initializes class maps\n" +
 	"\tmod = &Model{}\n" +
 	"\tmod.mThing = make(map[string]owl.Thing)\n" +
 	"###makeMaps###" +
-	"###newImportModels###" +
 	"\treturn\n" +
 	"}\n\n"
 
@@ -185,7 +182,6 @@ var ModelDeleteObject = "// DeleteObject deletes an object from the model along 
 	"\tif !mod.Exist(obj.IRI()) {\n" +
 	"\t\treturn\n" +
 	"\t}\n" +
-	"###deleteFromImports###" +
 	"\tg := mod.ToGraph()\n" +
 	"\tn := g.Nodes[obj.IRI()]\n" +
 	"\tfor i := range n.InverseEdge {\n" +

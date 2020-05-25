@@ -95,13 +95,15 @@ func main() {
 		}
 	}
 
-	// var file *os.File
-	// // classes
-	// file, err = os.Create("classes.dat")
-	// for i := range on.Class {
-	// 	fmt.Fprintln(file, on.Class[i].String())
-	// }
-	// file.Close()
+	fmt.Println(on.Imports)
+
+	var file *os.File
+	// classes
+	file, err = os.Create("classes.dat")
+	for i := range on.Class {
+		fmt.Fprintln(file, on.Class[i].String())
+	}
+	file.Close()
 
 	// // properties
 	// file, err = os.Create("properties.dat")
@@ -117,7 +119,7 @@ func main() {
 	// }
 	// file.Close()
 
-	var mod []owl.GoModel
+	var mod owl.GoModel
 	mod, err = owl.MapModel(&on, module)
 	if err != nil {
 		fmt.Println("Error: " + err.Error())

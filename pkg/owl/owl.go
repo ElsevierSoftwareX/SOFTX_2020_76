@@ -51,6 +51,7 @@ import (
 
 // Ontology holds all information of one ontology
 type Ontology struct {
+	IRI         string
 	Class       map[string]*Class      // all classes (key = iri)
 	Property    map[string]*Property   // all properties (key = iri)
 	Individual  map[string]*Individual // all individuals (key = iri)

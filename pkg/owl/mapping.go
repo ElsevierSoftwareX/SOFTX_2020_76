@@ -61,19 +61,17 @@ type GoModel struct {
 	Name        string             // name (part of iri)
 	Content     []byte             // ontology in ttl
 	Module      string             // Go module name
-	Import      []*GoModel         // imported ontologies
 }
 
 // GoClass holds properties of a class
 type GoClass struct {
-	IRI          string            // iri of class
-	Name         string            // class name
-	Parent       []string          // parent classes (also transitive)
-	DirectParent []string          // direct parent classes
-	Imports      map[string]string // imported packages for class file creation
-	Property     []GoProperty      // properties of class
-	Comment      string            // comment for doc
-	Model        *GoModel          // pointer to model
+	IRI          string       // iri of class
+	Name         string       // class name
+	Parent       []string     // parent classes (also transitive)
+	DirectParent []string     // direct parent classes
+	Property     []GoProperty // properties of class
+	Comment      string       // comment for doc
+	Model        *GoModel     // pointer to model
 }
 
 // GoProperty holds condiguration of a property
@@ -95,44 +93,29 @@ type GoProperty struct {
 
 // GoIndividual individuals
 type GoIndividual struct {
-	IRI        string // Individual iri
-	Name       string // name of individual
-	Typ        string // type of individual (class)
-	ImportName string // name of package to import
+	IRI  string // Individual iri
+	Name string // name of individual
+	Typ  string // type of individual (class)
 }
 
 // MapModel extracts the model from an ontology
-func MapModel(ont *Ontology, moduleName string) (mod []GoModel, err error) {
+func MapModel(ont *Ontology, moduleName string) (mod GoModel, err error) {
 	fmt.Println("Map ontology to Go model")
-	mod = make([]GoModel, len(ont.Imports), len(ont.Imports))
-	index := 0
-	for i := range ont.Imports {
-		mod[index].IRI = i
-		mod[index].Description = ont.Description[i]
-		mod[index].Module = moduleName
-		temp := strings.Split(i, "/")
-		mod[index].Name = temp[len(temp)-1]
-		index++
-	}
+	mod.IRI = ont.IRI
+	mod.Description = ont.Description[ont.IRI]
+	mod.Module = moduleName
+	temp := strings.Split(ont.IRI, "/")
+	mod.Name = temp[len(temp)-1]
+	mod.Class = make(map[string]GoClass)
 
-	for i := range mod {
-		for j := range ont.Imports[mod[i].IRI] {
-			for k := range mod {
-				if mod[k].IRI == ont.Imports[mod[i].IRI][j] {
-					mod[i].Import = append(mod[i].Import, &mod[k])
-				}
-			}
-		}
-		err = mod[i].createGoClasses(ont)
-		if err != nil {
-			return
-		}
+	for i := range ont.Imports {
+		mod.createGoClasses(ont, i)
 
 		for j := range ont.Individual {
-			if strings.HasPrefix(ont.Individual[j].Type.Name, mod[i].IRI+"#") {
-				temp := mod[i].extractIndividual(ont.Individual[j], ont)
+			if strings.HasPrefix(ont.Individual[j].Type.Name, i+"#") {
+				temp := mod.extractIndividual(ont.Individual[j], ont)
 				if temp.IRI != "" {
-					mod[i].Individual = append(mod[i].Individual, temp)
+					mod.Individual = append(mod.Individual, temp)
 				}
 			}
 		}
@@ -142,12 +125,12 @@ func MapModel(ont *Ontology, moduleName string) (mod []GoModel, err error) {
 }
 
 // createGoClasses creates all necessary GoClasses and fills their information if possible
-func (mod *GoModel) createGoClasses(ont *Ontology) (err error) {
-	fmt.Println("\tCreate Go classes for " + mod.Name)
-	mod.Class = make(map[string]GoClass)
+func (mod *GoModel) createGoClasses(ont *Ontology, ontName string) (err error) {
+	fmt.Println("\tCreate Go classes for " + ontName)
+
 	for i := range ont.Class {
 		var temp GoClass
-		temp, err = mod.extractClass(ont.Class[i], ont)
+		temp, err = mod.extractClass(ont.Class[i], ont, ontName)
 		if err != nil {
 			return
 		}
@@ -159,14 +142,15 @@ func (mod *GoModel) createGoClasses(ont *Ontology) (err error) {
 }
 
 // extractClass extracts a single class
-func (mod *GoModel) extractClass(class *Class, ont *Ontology) (goClass GoClass, err error) {
-	goClass.Imports = make(map[string]string)
+func (mod *GoModel) extractClass(class *Class, ont *Ontology, ontName string) (goClass GoClass,
+	err error) {
+
 	// get class name and IRI
-	if !strings.HasPrefix(class.Name, mod.IRI+"#") {
+	if !strings.HasPrefix(class.Name, ontName+"#") {
 		//err = errors.New("wrong iri: " + class.Name)
 		return
 	}
-	goClass.Name = strings.Title(strings.TrimPrefix(class.Name, mod.IRI+"#"))
+	goClass.Name = trimName(class.Name, ont)
 	goClass.IRI = class.Name
 
 	// get comment
@@ -175,28 +159,22 @@ func (mod *GoModel) extractClass(class *Class, ont *Ontology) (goClass GoClass, 
 	// get parents
 	parents := class.GetAllParents()
 	for i := range parents {
-		parentName, importName := trimName(parents[i].Name, ont)
+		parentName := trimName(parents[i].Name, ont)
 		if parentName == "" {
 			err = errors.New("Class " + class.Name + ": wrong parent: " + parents[i].Name)
 			return
 		}
 		if parentName != goClass.Name {
-			if !strings.HasSuffix(mod.IRI, importName) {
-				parentName = "im" + importName + "." + parentName
-			}
 			goClass.Parent = append(goClass.Parent, parentName)
 		}
 	}
 	for i := range class.Parent {
-		parentName, importName := trimName(class.Parent[i].Name, ont)
+		parentName := trimName(class.Parent[i].Name, ont)
 		if parentName == "" {
 			err = errors.New("Class " + class.Name + ": wrong parent: " + class.Parent[i].Name)
 			return
 		}
 		if parentName != goClass.Name {
-			if !strings.HasSuffix(mod.IRI, importName) {
-				parentName = "im" + importName + "." + parentName
-			}
 			goClass.DirectParent = append(goClass.DirectParent, parentName)
 		}
 	}
@@ -216,38 +194,26 @@ func (mod *GoModel) extractClass(class *Class, ont *Ontology) (goClass GoClass, 
 			property.Comment = ont.Property[restInv[i].Property.Name].Comment
 		}
 		var exist bool
-		var im string
-		property.BaseTyp, exist, im = getRestrictionType(restInv[i], ont)
+		property.BaseTyp, exist = getRestrictionType(restInv[i], ont)
 		if !exist {
 			err = errors.New("Class " + class.Name + " Restriction " + restInv[i].Property.Name +
 				" unknown base type " + property.BaseTyp[0])
 			return
 		}
-		if im != "" && !strings.HasSuffix(mod.IRI, im) {
-			if property.Multi {
-				goClass.Imports[mod.Module+"/pkg/"+im] = "im" + im + " "
-			}
-			property.BaseTyp[0] = "im" + im + "." + property.BaseTyp[0]
-		}
+
 		property.Multi, property.Multiplicity = getRestrictionMultiplicity(restInv[i])
 		if restInv[i].Property.Inverse != nil {
-			temp, _ := trimName(restInv[i].Property.Inverse.Name, ont)
-			property.Inverse = strings.Title(temp)
+			property.Inverse = trimName(restInv[i].Property.Inverse.Name, ont)
 		}
 
 		for j := range rest {
 			if rest[j].Property.Name == restInv[i].Property.Name {
-				property.Typ, exist, im = getRestrictionType(rest[j], ont)
+				property.Typ, exist = getRestrictionType(rest[j], ont)
 				if !exist || property.Typ[0] == "string" {
 					// fmt.Println("Warning: Class " + class.Name + " Restriction " + rest[j].Property.Name + " unknown type " + property.Typ)
 					property.Typ = property.BaseTyp
 				}
-				if im != "" && !strings.HasSuffix(mod.IRI, im) {
-					if property.Multi || property.Inverse != "" {
-						goClass.Imports[mod.Module+"/pkg/"+im] = "im" + im + " "
-					}
-					property.Typ[0] = "im" + im + "." + property.Typ[0]
-				}
+
 				//if property.Typ == "string" || property.Typ == "int" || property.Typ == "float64" ||
 				if property.Typ[0] == "time.Time" || property.Typ[0] == "time.Duration" {
 					if len(rest[j].Value) > 0 {
@@ -260,17 +226,12 @@ func (mod *GoModel) extractClass(class *Class, ont *Ontology) (goClass GoClass, 
 						return
 					}
 				}
-				allowedType, importNames := getRestrictionAllowedTypes(rest[j], ont)
+				allowedType := getRestrictionAllowedTypes(rest[j], ont)
 				if len(allowedType) == 0 {
 					property.AllowedTyp = append(property.AllowedTyp, property.Typ)
 				} else {
 					for k := range allowedType {
-						if !strings.HasSuffix(mod.IRI, importNames[k]) {
-							allowedType[k][0] = "im" + importNames[k] + "." + allowedType[k][0]
-							property.AllowedTyp = append(property.AllowedTyp, allowedType[k])
-						} else {
-							property.AllowedTyp = append(property.AllowedTyp, allowedType[k])
-						}
+						property.AllowedTyp = append(property.AllowedTyp, allowedType[k])
 					}
 				}
 				property.Individual, err = getIndividuals(rest[j], ont)
@@ -296,7 +257,7 @@ func (mod *GoModel) extractClass(class *Class, ont *Ontology) (goClass GoClass, 
 // getRestrictionNameAndIRI returns the name and iri of a restriction
 func getRestrictionNameAndIRI(rest *Restriction, ont *Ontology) (name string, capital string,
 	iri string) {
-	name, _ = trimName(rest.Property.Name, ont)
+	name = trimName(rest.Property.Name, ont)
 	a := []rune(name)
 	a[0] = unicode.ToLower(a[0])
 	name = string(a)
@@ -330,31 +291,27 @@ func getRestrictionMultiplicity(rest *Restriction) (multi bool, multiplicity str
 }
 
 // getRestrictionAllowedTypes returns the allowed types of a restriction
-func getRestrictionAllowedTypes(rest *Restriction, ont *Ontology) (values [][2]string,
-	importNames []string) {
+func getRestrictionAllowedTypes(rest *Restriction, ont *Ontology) (values [][2]string) {
 	if rest.ValueConstraint == "http://www.w3.org/2002/07/owl#hasValue" {
 		base, err := GetBaseType(rest.Value, ont.Individual, ont.Class)
 		if err != nil {
 			return
 		}
 		if base != nil {
-			allowedType, importName := trimName(base.Name, ont)
+			allowedType := trimName(base.Name, ont)
 			values = append(values, [2]string{allowedType, base.Name})
-			importNames = append(importNames, importName)
 		} else {
 			fmt.Println("unknown basetype for " + rest.Property.Name)
 		}
 	} else {
 		for i := range rest.Value {
 			if _, ok := ont.Class[rest.Value[i]]; ok {
-				allowedType, importName := trimName(rest.Value[i], ont)
+				allowedType := trimName(rest.Value[i], ont)
 				values = append(values, [2]string{allowedType, rest.Value[i]})
-				importNames = append(importNames, importName)
 			} else if strings.HasPrefix(rest.Value[i], "http://www.w3.org/2001/XMLSchema") {
 				allowedType, err := mapLiteralType(rest.Value[i])
 				if err == nil {
 					values = append(values, [2]string{allowedType, ""})
-					importNames = append(importNames, "")
 				}
 			}
 		}
@@ -363,8 +320,7 @@ func getRestrictionAllowedTypes(rest *Restriction, ont *Ontology) (values [][2]s
 }
 
 // getRestrictionType returns restriction type
-func getRestrictionType(rest *Restriction, ont *Ontology) (ret [2]string,
-	typeExist bool, importName string) {
+func getRestrictionType(rest *Restriction, ont *Ontology) (ret [2]string, typeExist bool) {
 	typeExist = false
 	if rest.ValueConstraint == "http://www.w3.org/2002/07/owl#hasValue" {
 		base, err := GetBaseType(rest.Value, ont.Individual, ont.Class)
@@ -373,7 +329,7 @@ func getRestrictionType(rest *Restriction, ont *Ontology) (ret [2]string,
 			return
 		}
 		if base != nil {
-			ret[0], _ = trimName(base.Name, ont)
+			ret[0] = trimName(base.Name, ont)
 		} else {
 			ret[0] = "owl.Thing"
 		}
@@ -382,7 +338,7 @@ func getRestrictionType(rest *Restriction, ont *Ontology) (ret [2]string,
 		isClass := false
 		isLiteral := false
 		for i := range rest.Value {
-			if temp, _ := trimName(rest.Value[i], ont); temp != "" {
+			if temp := trimName(rest.Value[i], ont); temp != "" {
 				isClass = true
 			} else if strings.HasPrefix(rest.Value[i], "http://www.w3.org/2001/XMLSchema") {
 				isLiteral = true
@@ -395,7 +351,7 @@ func getRestrictionType(rest *Restriction, ont *Ontology) (ret [2]string,
 				return
 			}
 			if base != nil {
-				ret[0], importName = trimName(base.Name, ont)
+				ret[0] = trimName(base.Name, ont)
 				ret[1] = base.Name
 			} else {
 				ret[0] = "owl.Thing"
@@ -429,7 +385,7 @@ func getIndividuals(rest *Restriction, ont *Ontology) (inds []string, err error)
 // extractIndividual
 func (mod *GoModel) extractIndividual(individual *Individual,
 	ont *Ontology) (goIndividual GoIndividual) {
-	if temp, _ := trimName(individual.Name, ont); temp != "" {
+	if temp := trimName(individual.Name, ont); temp != "" {
 		goIndividual.Name = temp
 	} else if strings.HasPrefix(individual.Name, "http://www.wurvoc.org/vocabularies/om-1.8") {
 		goIndividual.Name = strings.TrimPrefix(individual.Name,
@@ -444,7 +400,7 @@ func (mod *GoModel) extractIndividual(individual *Individual,
 	}
 	goIndividual.Name = strings.Join(temp, "")
 	goIndividual.IRI = individual.Name
-	goIndividual.Typ, goIndividual.ImportName = trimName(individual.Type.Name, ont)
+	goIndividual.Typ = trimName(individual.Type.Name, ont)
 	return
 }
 
@@ -490,16 +446,18 @@ func mapLiteralType(literal string) (goType string, err error) {
 }
 
 // trimName trims long names (iris) to short ones
-func trimName(name string, ont *Ontology) (out string, imp string) {
+func trimName(name string, ont *Ontology) (out string) {
 	for i := range ont.Imports {
 		if strings.HasPrefix(name, i+"#") {
-			out = strings.TrimPrefix(name, i+"#")
+			out = strings.Title(strings.TrimPrefix(name, i+"#"))
 			temp := strings.Split(i, "/")
-			imp = temp[len(temp)-1]
+			pref := strings.Title(temp[len(temp)-1])
+			if !strings.HasPrefix(out, pref) {
+				out = pref + out
+			}
 			return
 		}
 	}
 	out = ""
-	imp = ""
 	return
 }

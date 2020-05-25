@@ -56,23 +56,15 @@ import (
 )
 
 // GenerateGoCode generates the go package for a model
-func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
+func GenerateGoCode(mod owl.GoModel, path string) (err error) {
 	fmt.Println("Generate Go Code")
-	if len(mod) < 1 {
+
+	// make dirs
+	err = os.MkdirAll(path+"/pkg/ontology", os.ModePerm)
+	if err != nil {
 		return
 	}
 
-	// make dirs
-	for i := range mod {
-		err = os.MkdirAll(path+"/pkg/"+mod[i].Name, os.ModePerm)
-		if err != nil {
-			return
-		}
-	}
-	// err = os.MkdirAll(path+"/docs", os.ModePerm)
-	// if err != nil {
-	// 	return
-	// }
 	err = os.MkdirAll(path+"/internal/helper", os.ModePerm)
 	if err != nil {
 		return
@@ -94,7 +86,7 @@ func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 	if err != nil {
 		return
 	}
-	gomod := generateModule(mod[0].Module)
+	gomod := generateModule(mod.Module)
 	fmt.Fprintln(file, gomod)
 	file.Close()
 
@@ -107,83 +99,70 @@ func GenerateGoCode(mod []owl.GoModel, path string) (err error) {
 	fmt.Fprintln(file, template.OSSHeader+help)
 	file.Close()
 
-	for i := range mod {
-		fmt.Println("\tGenerate package " + mod[i].Name)
+	fmt.Println("\tGenerate package " + mod.Name)
 
-		// model
-		file, err = os.Create(path + "/pkg/" + mod[i].Name + "/model.go")
-		if err != nil {
-			return
-		}
-		model := generateModel(&mod[i])
-		fmt.Fprintln(file, template.OSSHeader+model)
-		file.Close()
-
-		// imports
-		if len(mod[i].Import) > 0 {
-			file, err = os.Create(path + "/pkg/" + mod[i].Name + "/imports.go")
-			if err != nil {
-				return
-			}
-			imp := generateImport(&mod[i])
-			fmt.Fprintln(file, template.OSSHeader+imp)
-			file.Close()
-		}
-
-		// individuals
-		file, err = os.Create(path + "/pkg/" + mod[i].Name + "/individuals.go")
-		if err != nil {
-			return
-		}
-		ind := generateIndividuals(&mod[i])
-		fmt.Fprintln(file, template.OSSHeader+ind)
-		file.Close()
-
-		// Properties struct
-		file, err = os.Create(path + "/pkg/" + mod[i].Name + "/propstruct.go")
-		if err != nil {
-			return
-		}
-		str, man, ser, ifc := generateProperties(&mod[i])
-		fmt.Fprintln(file, template.OSSHeader+str)
-		file.Close()
-
-		// Properties interface
-		file, err = os.Create(path + "/pkg/" + mod[i].Name + "/propinterface.go")
-		if err != nil {
-			return
-		}
-		fmt.Fprintln(file, template.OSSHeader+ifc)
-		file.Close()
-
-		// Properties manipulator
-		file, err = os.Create(path + "/pkg/" + mod[i].Name + "/propmanipulator.go")
-		if err != nil {
-			return
-		}
-		fmt.Fprintln(file, template.OSSHeader+man)
-		file.Close()
-
-		// Properties serializer
-		file, err = os.Create(path + "/pkg/" + mod[i].Name + "/propserializer.go")
-		if err != nil {
-			return
-		}
-		fmt.Fprintln(file, template.OSSHeader+ser)
-		file.Close()
-
-		// Classes
-		for j := range mod[i].Class {
-			file, err = os.Create(path + "/pkg/" + mod[i].Name + "/" + mod[i].Class[j].Name + ".go")
-			if err != nil {
-				return
-			}
-			class := generateClass(mod[i].Class[j], &mod[i])
-			fmt.Fprintln(file, template.OSSHeader+class)
-			file.Close()
-		}
-
+	// model
+	file, err = os.Create(path + "/pkg/ontology/model.go")
+	if err != nil {
+		return
 	}
+	model := generateModel(&mod)
+	fmt.Fprintln(file, template.OSSHeader+model)
+	file.Close()
+
+	// individuals
+	file, err = os.Create(path + "/pkg/ontology/individuals.go")
+	if err != nil {
+		return
+	}
+	ind := generateIndividuals(&mod)
+	fmt.Fprintln(file, template.OSSHeader+ind)
+	file.Close()
+
+	// Properties struct
+	file, err = os.Create(path + "/pkg/ontology/propstruct.go")
+	if err != nil {
+		return
+	}
+	str, man, ser, ifc := generateProperties(&mod)
+	fmt.Fprintln(file, template.OSSHeader+str)
+	file.Close()
+
+	// Properties interface
+	file, err = os.Create(path + "/pkg/ontology/propinterface.go")
+	if err != nil {
+		return
+	}
+	fmt.Fprintln(file, template.OSSHeader+ifc)
+	file.Close()
+
+	// Properties manipulator
+	file, err = os.Create(path + "/pkg/ontology/propmanipulator.go")
+	if err != nil {
+		return
+	}
+	fmt.Fprintln(file, template.OSSHeader+man)
+	file.Close()
+
+	// Properties serializer
+	file, err = os.Create(path + "/pkg/ontology/propserializer.go")
+	if err != nil {
+		return
+	}
+	fmt.Fprintln(file, template.OSSHeader+ser)
+	file.Close()
+
+	// Classes
+	for j := range mod.Class {
+		file, err = os.Create(path + "/pkg/ontology/" + mod.Class[j].Name + ".go")
+		if err != nil {
+			return
+		}
+		class := generateClass(mod.Class[j], &mod)
+		fmt.Fprintln(file, template.OSSHeader+class)
+		file.Close()
+	}
+
 	return
 }
 
@@ -248,38 +227,22 @@ func generateHelper() (ret string) {
 // generateModel generates model.go
 func generateModel(mod *owl.GoModel) (ret string) {
 	// Header
-	ret = strings.Replace(template.ModelHeader, "###pkgName###", mod.Name, -1)
-	imports := ""
-	for i := range mod.Import {
-		imports += "\tim" + mod.Import[i].Name + " \"" + mod.Module + "/pkg/" + mod.Import[i].Name +
-			"\"\n"
-	}
-	ret = strings.Replace(ret, "###imports###", imports, -1)
+	ret = strings.Replace(template.ModelHeader, "###pkgName###", "ontology", -1)
 
 	// Struct
 	objectMaps := ""
-	importModels := ""
 	for i := range mod.Class {
 		objectMaps += strings.Replace(template.StructMap, "###className###", mod.Class[i].Name, -1)
 	}
-	for i := range mod.Import {
-		importModels += strings.Replace(template.StructImport, "###importName###",
-			mod.Import[i].Name, -1)
-	}
-	ret += strings.Replace(strings.Replace(template.ModelStruct, "###objectMaps###",
-		objectMaps, -1), "###importModels###", importModels, -1)
+
+	ret += strings.Replace(template.ModelStruct, "###objectMaps###", objectMaps, -1)
 
 	// New Model
 	makeMaps := ""
-	newImportModels := ""
 	for i := range mod.Class {
 		makeMaps += strings.Replace(template.NewObjectMap, "###className###", mod.Class[i].Name, -1)
 	}
-	for i := range mod.Import {
-		makeMaps += strings.Replace(template.NewImport, "###importName###", mod.Import[i].Name, -1)
-	}
-	ret += strings.Replace(strings.Replace(template.ModelNew, "###makeMaps###", makeMaps, -1),
-		"###newImportModels###", newImportModels, -1)
+	ret += strings.Replace(template.ModelNew, "###makeMaps###", makeMaps, -1)
 
 	// model exist
 	ret += template.ModelExists
@@ -291,27 +254,12 @@ func generateModel(mod *owl.GoModel) (ret string) {
 	ret += template.ModelNewFromJSONLD
 
 	// graph to model
-	impRecv := getImportRecursive(mod)
 	newObjects := ""
 	for i := range mod.Class {
 		newObjects += strings.Replace(strings.Replace(strings.Replace(template.NewObject,
 			"###className###", mod.Class[i].Name, -1),
 			"###capImportName###", "", -1),
 			"###classIRI###", mod.Class[i].IRI, -1)
-	}
-	imps := make(map[string]interface{})
-	for i := range impRecv {
-		if _, ok := imps[impRecv[i].Name]; !ok {
-			impPath := strings.Split(getImportPath(mod, impRecv[i].Name), ".")
-			if len(impPath) > 1 {
-				for j := range impRecv[i].Class {
-					newObjects += strings.Replace(strings.Replace(strings.Replace(
-						template.NewObject, "###className###", impRecv[i].Class[j].Name, -1),
-						"###capImportName###", strings.Title(impPath[len(impPath)-1]), -1),
-						"###classIRI###", impRecv[i].Class[j].IRI, -1)
-				}
-			}
-		}
 	}
 	ret += strings.Replace(template.ModelNewFromGraph, "###newObjects###", newObjects, -1)
 
@@ -325,19 +273,12 @@ func generateModel(mod *owl.GoModel) (ret string) {
 	ret += template.ModelToJSONLD
 
 	// delete object
-	deleteFromImports := ""
 	deleteFromMaps := ""
-	for i := range mod.Import {
-		deleteFromImports += strings.Replace(template.DeleteFromImport, "###importName###",
-			mod.Import[i].Name, -1)
-	}
 	for i := range mod.Class {
 		deleteFromMaps += strings.Replace(template.DeleteFromMap, "###className###",
 			mod.Class[i].Name, -1)
 	}
-	ret += strings.Replace(strings.Replace(template.ModelDeleteObject,
-		"###deleteFromImports###", deleteFromImports, -1),
-		"###deleteFromMaps###", deleteFromMaps, -1)
+	ret += strings.Replace(template.ModelDeleteObject, "###deleteFromMaps###", deleteFromMaps, -1)
 
 	// string
 	ret += template.ModelString
@@ -347,67 +288,16 @@ func generateModel(mod *owl.GoModel) (ret string) {
 		"###importName###", mod.Name, -1),
 		"###importIRI###", mod.IRI+"#", -1)
 	shapeImports := strings.Replace(template.ImportShape, "###importIRI###", mod.IRI+"#", -1)
-	for i := range impRecv {
-		replaceImports += strings.Replace(strings.Replace(template.ImportReplace,
-			"###importName###", impRecv[i].Name, -1),
-			"###importIRI###", impRecv[i].IRI+"#", -1)
-		shapeImports += strings.Replace(template.ImportShape, "###importIRI###", impRecv[i].IRI+"#",
-			-1)
-	}
 	ret += strings.Replace(strings.Replace(template.ModelToDot,
 		"###importReplace###", replaceImports, -1),
 		"###importShape###", shapeImports, -1)
 	return
 }
 
-// generateImport generates import.go
-func generateImport(mod *owl.GoModel) (ret string) {
-	impRecv := getImportRecursive(mod)
-	// Header
-	ret = strings.Replace(template.ImportsHeader, "###pkgName###", mod.Name, -1)
-	imports := ""
-	for i := range impRecv {
-		imports += "\tim" + impRecv[i].Name + " \"" + mod.Module + "/pkg/" + impRecv[i].Name +
-			"\"\n"
-	}
-	ret = strings.Replace(ret, "###imports###", imports, -1)
-
-	// New and Get methods
-	imps := make(map[string]interface{})
-	for i := range impRecv {
-		if _, ok := imps[impRecv[i].Name]; !ok {
-			impPath := strings.Split(getImportPath(mod, impRecv[i].Name), ".")
-			if len(impPath) == 2 {
-				for j := range impRecv[i].Class {
-					ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(
-						strings.Replace(template.ImportsNewGetMethods,
-							"###className###", impRecv[i].Class[j].Name, -1),
-						"###capImportName###", strings.Title(impPath[1]), -1),
-						"###importName###", impPath[1], -1),
-						"###importModelName###", impPath[1], -1),
-						"###importCapImportName###", "", -1)
-				}
-			} else if len(impPath) > 2 {
-				for j := range impRecv[i].Class {
-					ret += strings.Replace(strings.Replace(strings.Replace(strings.Replace(
-						strings.Replace(template.ImportsNewGetMethods,
-							"###className###", impRecv[i].Class[j].Name, -1),
-						"###capImportName###", strings.Title(impPath[len(impPath)-1]), -1),
-						"###importName###", impPath[len(impPath)-1], -1),
-						"###importModelName###", impPath[1], -1),
-						"###importCapImportName###", strings.Title(impPath[len(impPath)-1]), -1)
-				}
-			}
-		}
-	}
-
-	return
-}
-
 // generateIndividuals generates individuals.go
 func generateIndividuals(mod *owl.GoModel) (ret string) {
 	// Header
-	ret = strings.Replace(template.Individual, "###pkgName###", mod.Name, -1)
+	ret = strings.Replace(template.Individual, "###pkgName###", "ontology", -1)
 
 	// individuals
 	createIndividuals := ""
@@ -416,17 +306,7 @@ func generateIndividuals(mod *owl.GoModel) (ret string) {
 			"###individualType###", mod.Individual[i].Typ, -1),
 			"###individualIRI###", mod.Individual[i].IRI, -1)
 	}
-	for i := range mod.Import {
-		for j := range mod.Import[i].Individual {
-			indType := mod.Import[i].Individual[j].Typ
-			if mod.Import[i].Individual[j].ImportName != mod.Name {
-				indType = strings.Title(mod.Import[i].Individual[j].ImportName) + indType
-			}
-			createIndividuals += strings.Replace(strings.Replace(template.CreateIndividual,
-				"###individualType###", indType, -1),
-				"###individualIRI###", mod.Import[i].Individual[j].IRI, -1)
-		}
-	}
+
 	ret = strings.Replace(ret, "###createIndividuals###", createIndividuals, -1)
 	return
 }
@@ -464,27 +344,8 @@ func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 			if mod.Class[i].Property[j].Typ[0] == "time.Duration" {
 				manImport[mod.Module+"/internal/helper"] = ""
 			}
-			temp := strings.Split(mod.Class[i].Property[j].BaseTyp[0], ".")
-			if len(temp) == 2 && mod.Class[i].Property[j].BaseTyp[0] != "time.Time" &&
-				mod.Class[i].Property[j].BaseTyp[0] != "time.Duration" &&
-				mod.Class[i].Property[j].BaseTyp[0] != "owl.Thing" {
-				ifcImport[mod.Module+"/pkg/"+strings.TrimPrefix(temp[0], "im")] = temp[0] + " "
-				manImport[mod.Module+"/pkg/"+strings.TrimPrefix(temp[0], "im")] = temp[0] + " "
-			}
-			temp = strings.Split(mod.Class[i].Property[j].Typ[0], ".")
-			if len(temp) == 2 && mod.Class[i].Property[j].Typ[0] != "time.Time" &&
-				mod.Class[i].Property[j].Typ[0] != "time.Duration" &&
-				mod.Class[i].Property[j].Typ[0] != "owl.Thing" {
-				strImport[mod.Module+"/pkg/"+strings.TrimPrefix(temp[0], "im")] = temp[0] + " "
-			}
 		}
-		for j := range mod.Class[i].Imports {
-			if mod.Class[i].Imports[j] != "" {
-				manImport[j] = mod.Class[i].Imports[j]
-				strImport[j] = mod.Class[i].Imports[j]
-				ifcImport[j] = mod.Class[i].Imports[j]
-			}
-		}
+
 	}
 	manImport["git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/owl"] = ""
 	serImport["git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/rdf"] = ""
@@ -492,7 +353,7 @@ func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 	serImport["fmt"] = ""
 
 	// Struct Header
-	str = strings.Replace(template.PropertyHeader, "###pkgName###", mod.Name, -1)
+	str = strings.Replace(template.PropertyHeader, "###pkgName###", "ontology", -1)
 	propImports := ""
 	if len(strImport) > 0 {
 		propImports += "import (\n"
@@ -505,7 +366,7 @@ func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 	str += template.PropertyStructCommon
 
 	// Manipulator Header
-	man = strings.Replace(template.PropertyHeader, "###pkgName###", mod.Name, -1)
+	man = strings.Replace(template.PropertyHeader, "###pkgName###", "ontology", -1)
 	propImports = ""
 	if len(manImport) > 0 {
 		propImports += "import (\n"
@@ -518,7 +379,7 @@ func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 	man += template.PropertyIRI
 
 	// Serializer Header
-	ser = strings.Replace(template.PropertyHeader, "###pkgName###", mod.Name, -1)
+	ser = strings.Replace(template.PropertyHeader, "###pkgName###", "ontology", -1)
 	propImports = ""
 	if len(serImport) > 0 {
 		propImports += "import (\n"
@@ -530,7 +391,7 @@ func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 	ser = strings.Replace(ser, "###propImports###", propImports, -1)
 
 	// Interface Header
-	ifc = strings.Replace(template.PropertyHeader, "###pkgName###", mod.Name, -1)
+	ifc = strings.Replace(template.PropertyHeader, "###pkgName###", "ontology", -1)
 	propImports = ""
 	if len(ifcImport) > 0 {
 		propImports += "import (\n"
@@ -981,20 +842,15 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 	}
 
 	// Header
-	ret = strings.Replace(template.ClassHeader, "###pkgName###", mod.Name, -1)
+	ret = strings.Replace(template.ClassHeader, "###pkgName###", "ontology", -1)
 	imports := ""
-	for i := range class.Imports {
-		if equalParentProps && class.Imports[i] != "" {
-			continue
-		}
-		imports += "\t" + class.Imports[i] + "\"" + i + "\"\n"
-	}
+
 	imports += "\t\"errors\"\n"
 	imports += "\t\"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/rdf\"\n"
-	if !equalParentProps {
-		imports += "\t\"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/owl\"\n"
-	}
-	imports += "\t\"" + mod.Module + "/internal/helper\"\n"
+	// if !equalParentProps {
+	imports += "\t\"git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/owl\"\n"
+	// }
+	// imports += "\t\"" + mod.Module + "/internal/helper\"\n"
 	imports += "\t\"strings\"\n"
 	ret = strings.Replace(ret, "###imports###", imports, -1)
 
@@ -1481,29 +1337,5 @@ func generateClass(class owl.GoClass, mod *owl.GoModel) (ret string) {
 	}
 
 	ret = strings.Replace(ret, "###className###", class.Name, -1)
-	return
-}
-
-// getImportRecursive
-func getImportRecursive(mod *owl.GoModel) (ret []*owl.GoModel) {
-	for i := range mod.Import {
-		ret = append(ret, mod.Import[i])
-		ret = append(ret, getImportRecursive(mod.Import[i])...)
-	}
-	return
-}
-
-// getImportPath
-func getImportPath(mod *owl.GoModel, pkg string) (ret string) {
-	for i := range mod.Import {
-		ret = getImportPath(mod.Import[i], pkg)
-	}
-	if mod.Name == pkg {
-		ret = pkg
-	} else if ret != "" {
-		ret = mod.Name + "." + ret
-	} else {
-		ret = ""
-	}
 	return
 }

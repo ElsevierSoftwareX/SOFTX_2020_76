@@ -176,7 +176,7 @@ func measurePerformance(size int) (dExt, dMap, dGen time.Duration, err error) {
 	// fmt.Println("Time for extraction: ", dExt)
 
 	tstart = time.Now()
-	var mod []owl.GoModel
+	var mod owl.GoModel
 	mod, err = owl.MapModel(&on, "test")
 	if err != nil {
 		fmt.Println("Error: " + err.Error())
