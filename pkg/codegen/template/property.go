@@ -170,7 +170,7 @@ var PropInitGYearMonth = "\tif obj, err := time.Parse(\"2006-01\", in); err == n
 	"\t}\n"
 
 // PropInitDuration template
-var PropInitDuration = "\tif obj, err := helper.ParseXsdDuration(in); err == nil {\n" +
+var PropInitDuration = "\tif obj, err := owl.ParseXsdDuration(in); err == nil {\n" +
 	"\t\tres.###Multiplicity######propCapital###(obj)\n" +
 	"\t}\n"
 
@@ -400,49 +400,49 @@ var PropertySingleRemove = "// removeObject removes object from property\n" +
 	"}\n\n"
 
 // GraphPropString template
-var GraphPropString = "###indent###\thelper.AddStringPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+var GraphPropString = "###indent###\towl.AddStringPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
 // GraphPropFloat template
-var GraphPropFloat = "###indent###\thelper.AddFloatPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+var GraphPropFloat = "###indent###\towl.AddFloatPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
 // GraphPropInt template
-var GraphPropInt = "###indent###\thelper.AddIntPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+var GraphPropInt = "###indent###\towl.AddIntPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
 // GraphPropBool template
-var GraphPropBool = "###indent###\thelper.AddBoolPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+var GraphPropBool = "###indent###\towl.AddBoolPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
 // GraphPropInterface template
-var GraphPropInterface = "###indent###\thelper.AddInterfacePropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+var GraphPropInterface = "###indent###\towl.AddInterfacePropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
 // GraphPropSTime template
-var GraphPropSTime = "###indent###\thelper.AddTimePropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+var GraphPropSTime = "###indent###\towl.AddTimePropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
 // GraphPropSDateTime template
-var GraphPropSDateTime = "###indent###\thelper.AddDateTimePropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+var GraphPropSDateTime = "###indent###\towl.AddDateTimePropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
 // GraphPropSDate template
-var GraphPropSDate = "###indent###\thelper.AddDatePropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+var GraphPropSDate = "###indent###\towl.AddDatePropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
 // GraphPropSDuration template
-var GraphPropSDuration = "###indent###\thelper.AddDurationPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+var GraphPropSDuration = "###indent###\towl.AddDurationPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
 // GraphPropSDateTimeStamp template
-var GraphPropSDateTimeStamp = "###indent###\thelper.AddDateTimeStampPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+var GraphPropSDateTimeStamp = "###indent###\towl.AddDateTimeStampPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
 // GraphPropSGYear template
-var GraphPropSGYear = "###indent###\thelper.AddGYearPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+var GraphPropSGYear = "###indent###\towl.AddGYearPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
 // GraphPropSGDay template
-var GraphPropSGDay = "###indent###\thelper.AddGDayPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+var GraphPropSGDay = "###indent###\towl.AddGDayPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
 // GraphPropSGYearMonth template
-var GraphPropSGYearMonth = "###indent###\thelper.AddGYearMonthPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+var GraphPropSGYearMonth = "###indent###\towl.AddGYearMonthPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
 // GraphPropSGMonth template
-var GraphPropSGMonth = "###indent###\thelper.AddGMonthPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+var GraphPropSGMonth = "###indent###\towl.AddGMonthPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
 // GraphPropClass template
-var GraphPropClass = "###indent###\thelper.AddClassPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
+var GraphPropClass = "###indent###\towl.AddClassPropertyToGraph(g, \"###propIRI###\", node, res.###propName######array###)\n"
 
 // PropertyStringSingle template
 var PropertyStringSingle = "// String prints the object into a string\n" +

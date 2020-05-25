@@ -65,11 +65,6 @@ func GenerateGoCode(mod owl.GoModel, path string) (err error) {
 		return
 	}
 
-	err = os.MkdirAll(path+"/internal/helper", os.ModePerm)
-	if err != nil {
-		return
-	}
-
 	var file *os.File
 
 	// README
@@ -89,17 +84,6 @@ func GenerateGoCode(mod owl.GoModel, path string) (err error) {
 	gomod := generateModule(mod.Module)
 	fmt.Fprintln(file, gomod)
 	file.Close()
-
-	// internal
-	file, err = os.Create(path + "/internal/helper/helper.go")
-	if err != nil {
-		return
-	}
-	help := generateHelper()
-	fmt.Fprintln(file, template.OSSHeader+help)
-	file.Close()
-
-	fmt.Println("\tGenerate package " + mod.Name)
 
 	// model
 	file, err = os.Create(path + "/pkg/ontology/model.go")
@@ -181,46 +165,9 @@ func generateReadme(ontName string, description string, iri string) (ret string)
 func generateModule(name string) (ret string) {
 	ret = "module " + name + "\n\n"
 	ret += "require (\n"
-	ret += "\tgit.rwth-aachen.de/acs/public/ontology/owl/owl2go v1.0.1-0.20200519095848-1957790a97ad\n"
-	ret += "\tgithub.com/piprate/json-gold v0.3.0\n"
+	ret += "\tgit.rwth-aachen.de/acs/public/ontology/owl/owl2go v1.0.1-0.20200525133438-43374eac5080\n"
 	ret += ")\n\n"
 	ret += "go 1.13"
-	return
-}
-
-// generateHelper generates the helper functions in internal dir
-func generateHelper() (ret string) {
-	ret = template.HelperHeader + template.HelperAddToGraph
-	ret += template.HelperAddClassPropertyToGraph + template.HelperAddIntPropertyToGraph +
-		template.HelperAddFloatPropertyToGraph + template.HelperAddStringPropertyToGraph +
-		template.HelperAddBoolPropertyToGraph + template.HelperAddInterfacePropertyToGraph +
-		template.HelperAddDurationPropertyToGraph
-	ret += strings.Replace(strings.Replace(template.HelperAddTimePropertyToGraph,
-		"###timeType###", "Time", -1),
-		"###timeLiteral###", template.LiteralTime, -1)
-	ret += strings.Replace(strings.Replace(template.HelperAddTimePropertyToGraph,
-		"###timeType###", "DateTime", -1),
-		"###timeLiteral###", template.LiteralDateTime, -1)
-	ret += strings.Replace(strings.Replace(template.HelperAddTimePropertyToGraph,
-		"###timeType###", "Date", -1),
-		"###timeLiteral###", template.LiteralDate, -1)
-	ret += strings.Replace(strings.Replace(template.HelperAddTimePropertyToGraph,
-		"###timeType###", "DateTimeStamp", -1),
-		"###timeLiteral###", template.LiteralDateTimeStamp, -1)
-	ret += strings.Replace(strings.Replace(template.HelperAddTimePropertyToGraph,
-		"###timeType###", "GYear", -1),
-		"###timeLiteral###", template.LiteralGYear, -1)
-	ret += strings.Replace(strings.Replace(template.HelperAddTimePropertyToGraph,
-		"###timeType###", "GDay", -1),
-		"###timeLiteral###", template.LiteralGDay, -1)
-	ret += strings.Replace(strings.Replace(template.HelperAddTimePropertyToGraph,
-		"###timeType###", "GYearMonth", -1),
-		"###timeLiteral###", template.LiteralGYearMonth, -1)
-	ret += strings.Replace(strings.Replace(template.HelperAddTimePropertyToGraph,
-		"###timeType###", "GMonth", -1),
-		"###timeLiteral###", template.LiteralGMonth, -1)
-	ret += template.HelperParseXsdDuration
-	ret += template.HelperIsIRI
 	return
 }
 
@@ -341,15 +288,15 @@ func generateProperties(mod *owl.GoModel) (str, man, ser, ifc string) {
 				mod.Class[i].Property[j].BaseTyp[0] == "bool" {
 				manImport["strconv"] = ""
 			}
-			if mod.Class[i].Property[j].Typ[0] == "time.Duration" {
-				manImport[mod.Module+"/internal/helper"] = ""
-			}
+			// if mod.Class[i].Property[j].Typ[0] == "time.Duration" {
+			// 	manImport[mod.Module+"/internal/helper"] = ""
+			// }
 		}
 
 	}
 	manImport["git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/owl"] = ""
+	serImport["git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/owl"] = ""
 	serImport["git.rwth-aachen.de/acs/public/ontology/owl/owl2go/pkg/rdf"] = ""
-	serImport[mod.Module+"/internal/helper"] = ""
 	serImport["fmt"] = ""
 
 	// Struct Header

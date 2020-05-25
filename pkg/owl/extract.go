@@ -175,9 +175,12 @@ func (on *Ontology) parseImports(gIn *rdf.Graph) (err error) {
 	hasImport := false
 	for i := range gIn.Edges {
 		if gIn.Edges[i].Pred.String() == "http://www.w3.org/2002/07/owl#imports" {
-			hasImport = true
 			iri := gIn.Edges[i].Subject.Term.String()
 			impIRI := gIn.Edges[i].Object.Term.String()
+			if _, ok := on.Imports[impIRI]; ok {
+				continue
+			}
+			hasImport = true
 
 			on.Imports[iri] = append(on.Imports[iri], impIRI)
 
